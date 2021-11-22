@@ -18,12 +18,12 @@ translation_strings = {
     [1] Лайки\n
     [2] Комментарии\n
     [3] Стена\n
-    [4] Фотографии в сообщениях(скоро)
+    [4] Фотографии в сообщениях(Медленно)
     ''',
                             'en': '''Enter what you want to delete in one line separated by a space:\n
     [1] Likes\n
     [2] Comments\n
-    [4] Photos in messages(TODO)
+    [4] Photos in messages(Slow)
                             '''},
     'error': {
         'ru': 'Ошибка',
@@ -56,6 +56,18 @@ translation_strings = {
     'deleting_wall': {
         'ru': '''Удаление стены''',
         'en': '''Wall deleting'''
+    },
+    'deleting_photos_in_messages': {
+        'ru': '''Удаление фотографий в сообщениях''',
+        'en': '''Deleting photos in messages'''
+    },
+    'archive_messages_parsing': {
+        'ru': '''Обработка архива {:.2%} завершено''',
+        'en': '''Archive parsing {:.2%} done'''
+    },
+    'getting_list_of_msg': {
+        'ru': '''Получение списка сообщений {:.2%} завершено''',
+        'en': '''Receiving messages list {:.2%} done'''
     },
     'done': {
         'ru': '''Работа завершена''',

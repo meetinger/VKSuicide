@@ -39,6 +39,8 @@ access_token = getArgsInline(numOfArgs=1, allowedArgs=lambda token: VKApi.check_
 
 vk_api = VKApi(access_token)
 
+user_id = vk_api.execute_method('users.get', {})['response'][0]['id']
+
 # token_valid = (VKApi.check_token(token).get('response', -1) > 0)
 #
 # while not token_valid:
@@ -82,11 +84,9 @@ def build_log_str(res, link, log_file, additional=''):
 delays = {'normal': (0, 1), 'captcha': (2, 3)}
 attempts_limit = 5
 
-
-parameters_for_deleting = {}
+parameters_for_deleting = dict.fromkeys(to_delete_str_arr, [])
 
 if 'likes' in to_delete_str_arr:
-    parameters_for_deleting['likes'] = []
     # print(get_string('deleting_likes', language))
     # log_file.write(get_string('deleting_likes', language) + '\n')
     likes_dir_list = os.listdir('Archive/likes')
@@ -111,8 +111,6 @@ if 'likes' in to_delete_str_arr:
                                                                         'item_id': int(item_id)}})
 
 if 'comments' in to_delete_str_arr:
-    parameters_for_deleting['comments'] = []
-
     comments_file_list = os.listdir('Archive/comments')
 
     for cur_file_name in comments_file_list:
@@ -130,9 +128,7 @@ if 'comments' in to_delete_str_arr:
                                                             'params': {'owner_id': int(owner_id),
                                                                        'comment_id': int(reply_id)}})
 
-
 if 'wall' in to_delete_str_arr:
-    parameters_for_deleting['wall'] = []
     # print(get_string('deleting_wall', language))
     # log_file.write(get_string('deleting_wall', language) + '\n')
     wall_files = os.listdir('Archive/wall')
@@ -149,10 +145,59 @@ if 'wall' in to_delete_str_arr:
                 parameters_for_deleting['wall'].append({'link': link, 'method': 'wall.delete',
                                                         'params': {'owner_id': int(owner_id), 'post_id': int(post_id)}})
 
+if 'photos_in_messages' in to_delete_str_arr:
+    msg_dirs = os.listdir('Archive/messages')
+    msg_dirs = [i for i in msg_dirs if os.path.isdir('Archive/messages/' + i)]
+
+    msgs_id = []
+
+    progress_counter = 0
+    for cur_msg_dir in msg_dirs:
+        # res = vk_api.execute_method('messages.getHistoryAttachments', {'peer_id':cur_msg_dir, 'media_type': 'photo', 'count': 200})
+        # print(res)
+
+        msg_files = os.listdir('Archive/messages/' + cur_msg_dir)
+        for cur_file_name in msg_files:
+
+            cur_file = open('Archive/messages/' + cur_msg_dir + '/' + cur_file_name, 'r')
+            lines = cur_file.readlines()
+
+            for line in lines:
+                if 'data-id=' in line:
+                    msg_id = line.split('data-id="')[1].split('"')[0]
+                    msgs_id.append(msg_id)
+        progress_counter = progress_counter + 1
+        print(get_string('archive_messages_parsing', language).format(progress_counter / len(msg_dirs)))
+
+    msgs = []
+
+    for i in range(1, int(len(msgs_id) / 100) + 2):
+        tmp = vk_api.execute_method('messages.getById', {'message_ids': ', '.join(msgs_id[(i - 1) * 100:i * 100])})[
+            'response']['items']
+        print(get_string('getting_list_of_msg', language).format(i / (int(len(msgs_id) / 100) + 1)))
+        msgs.extend(tmp)
 
 
+    # msgs = vk_api.execute_method('messages.getById', {'message_ids': ', '.join(msgs_id)})['response']['items']
 
-indexes = {key: 0 for key in parameters_for_deleting.keys()}
+    def filter_func(msg):
+        for attachment in msg['attachments']:
+            if attachment['type'] == 'photo' and attachment['photo']['owner_id'] == user_id:
+                return True
+        return False
+
+
+    msgs = list(filter(filter_func, msgs))
+
+    for msg in msgs:
+        for attachment in msg['attachments']:
+            if attachment['type'] == 'photo':
+                photo = attachment['photo']
+                parameters_for_deleting['photos_in_messages'].append({'link': 'no_link', 'method': 'photos.delete',
+                                                                      'params': {'owner_id': photo['owner_id'],
+                                                                                 'photo_id': photo['id']}})
+
+indexes = dict.fromkeys(to_delete_str_arr, 0)
 
 while True:
     done = True
@@ -175,7 +220,8 @@ while True:
                 res = vk_api.execute_method(line['method'], line['params'])
 
                 build_log_str(res=res, link=line['link'], log_file=log_file,
-                              additional=" | " + get_string('attempt_limit', language) if fail_counter >= attempts_limit else '')
+                              additional=" | " + get_string('attempt_limit',
+                                                            language) if fail_counter >= attempts_limit else '')
                 if fail_counter >= attempts_limit:
                     break
                 time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
@@ -187,7 +233,7 @@ while True:
                 break
 
     for key in parameters_for_deleting.keys():
-        if indexes[key] < len(parameters_for_deleting[key])-1:
+        if indexes[key] < len(parameters_for_deleting[key]) - 1:
             done = False
 
     if done:

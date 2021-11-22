@@ -173,7 +173,7 @@ if 'photos_in_messages' in to_delete_str_arr:
 
             msgs_docs = list(filter(filter_msg, msgs_docs))
 
-            msgs_id.extend([int(i['attrs']['data-id'][0]) for i in msgs_docs])
+            msgs_id.extend([i['attrs']['data-id'][0] for i in msgs_docs])
 
         #     for line in lines:
         #         if 'data-id=' in line:
@@ -201,6 +201,8 @@ if 'photos_in_messages' in to_delete_str_arr:
 
 
     msgs = list(filter(filter_func, msgs))
+
+    print(len(msgs))
 
     for msg in msgs:
         for attachment in msg['attachments']:

@@ -18,11 +18,13 @@ class HTMLAnalyzer(HTMLParser, ABC):
         return res
 
     def handle_starttag(self, tag, attrs):
-        path = self.build_path_str()
-        tmp = extract_from_dictionary(self.HTMLData, path)
-        attr_dict = {i[0]: i[1].split() for i in attrs if i[1] is not None}
-        tmp.append({'tag': tag, 'attrs': attr_dict, 'child': []})
-        self.stack.append(len(tmp) - 1)
+        if not(tag in 'br'):
+            path = self.build_path_str()
+            tmp = extract_from_dictionary(self.HTMLData, path)
+            attr_dict = {i[0]: i[1].split() for i in attrs if i[1] is not None}
+            tmp.append({'tag': tag, 'attrs': attr_dict, 'child': []})
+            self.stack.append(len(tmp) - 1)
+
 
     def handle_endtag(self, tag):
         self.stack.pop()

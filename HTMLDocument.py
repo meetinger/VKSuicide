@@ -21,14 +21,14 @@ class HTMLDocument:
         res = []
         if isinstance(var, list):
             for i in var:
-                print(var)
                 res.extend(self.get_elements_by_attributes_rec(i, attrs))
         elif isinstance(var, dict):
             flag = True
             for attr_key, attr_value in attrs.items():
                 if var['child']:
                     res.extend(self.get_elements_by_attributes_rec(var['child'], attrs))
-                if not ((attr_key in var['attrs']) and (var['attrs'][attr_key] == attr_value or attr_value in var['attrs'][attr_key])):
+                if not ((attr_key in var['attrs']) and (
+                        var['attrs'][attr_key] == attr_value or attr_value in var['attrs'][attr_key])):
                     flag = False
                     break
             if flag:
@@ -49,7 +49,8 @@ class HTMLDocument:
             for attr_key, attr_value in attrs.items():
                 if var['child']:
                     flag = self.check_attributes_rec(var['child'], attrs)
-                if (attr_key in var['attrs']) and (var['attrs'][attr_key] == attr_value or attr_value in var['attrs'][attr_key]):
+                if (attr_key in var['attrs']) and (
+                        var['attrs'][attr_key] == attr_value or attr_value in var['attrs'][attr_key]):
                     flag = True
                     break
         return flag
@@ -57,6 +58,8 @@ class HTMLDocument:
     def check_attributes(self, attrs):
         return self.check_attributes_rec(self.document, attrs)
 
+    def get_document(self):
+        return self.document
 
     def __str__(self):
         return str(self.document)

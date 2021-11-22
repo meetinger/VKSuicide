@@ -33,9 +33,17 @@ translation_strings = {
         'ru': '''Успешно''',
         'en': '''Success'''
     },
+    'deleting': {
+        'ru': '''Удаление''',
+        'en': '''Deleting'''
+    },
     'err14': {
         'ru': '''Капча, ждём перед следующей попыткой''',
         'en': '''Captcha, waiting before next attempt'''
+    },
+    'attempt_limit': {
+        'ru': '''Достигнут лимит попыток, переход на следующую задачу''',
+        'en': '''The limit of attempts has been reached, moving to the next task'''
     },
     'deleting_likes': {
         'ru': '''Удаление лайков''',
@@ -48,6 +56,10 @@ translation_strings = {
     'deleting_wall': {
         'ru': '''Удаление стены''',
         'en': '''Wall deleting'''
+    },
+    'done': {
+        'ru': '''Работа завершена''',
+        'en': '''Done'''
     }
 }
 

@@ -58,14 +58,13 @@ archive_dir_list = os.listdir('Archive')
 
 log_file_name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + '.log'
 
-
 if not os.path.exists('logs/'):
     os.makedirs('logs/')
 
-log_file = codecs.open('logs/'+log_file_name, 'a', "utf-8")
+log_file = codecs.open('logs/' + log_file_name, 'a', "utf-8")
 
 
-def build_log_str(res, link, log_file):
+def build_log_str(res, link, log_file, additional=''):
     log_string = '[{}] {} '.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), link)
 
     if 'error' in res:
@@ -75,15 +74,21 @@ def build_log_str(res, link, log_file):
             log_string += " | " + get_string('err14', language)
     else:
         log_string += get_string('success', language)
+    log_string += additional
     print(log_string)
     log_file.write(log_string + '\n')
 
 
-delays = {'normal': (2, 5), 'captcha': (30, 60)}
+delays = {'normal': (0, 1), 'captcha': (2, 3)}
+attempts_limit = 5
+
+
+parameters_for_deleting = {}
 
 if 'likes' in to_delete_str_arr:
-    print(get_string('deleting_likes', language))
-    log_file.write(get_string('deleting_likes', language) + '\n')
+    parameters_for_deleting['likes'] = []
+    # print(get_string('deleting_likes', language))
+    # log_file.write(get_string('deleting_likes', language) + '\n')
     likes_dir_list = os.listdir('Archive/likes')
     likes_dir_list = [i for i in likes_dir_list if os.path.isdir('Archive/likes/' + i)]
     for cur_dir_name in likes_dir_list:
@@ -101,24 +106,12 @@ if 'likes' in to_delete_str_arr:
 
                     reply_id = reply_id[0] if len(reply_id) > 0 else ''
 
-                    res = vk_api.execute_method('likes.delete',
-                                                {'type': content_type, 'owner_id': int(owner_id),
-                                                 'item_id': int(item_id)})
-
-                    build_log_str(res=res, link=link, log_file=log_file)
-
-                    time.sleep(random.randint(delays['normal'][0], delays['normal'][1]))
-
-                    while res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
-                        res = vk_api.execute_method('likes.delete',
-                                                    {'type': content_type, 'owner_id': int(owner_id),
-                                                     'item_id': int(item_id)})
-                        build_log_str(res=res, link=link, log_file=log_file)
-                        time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
+                    parameters_for_deleting['likes'].append({'link': link, 'method': 'likes.delete',
+                                                             'params': {'type': content_type, 'owner_id': int(owner_id),
+                                                                        'item_id': int(item_id)}})
 
 if 'comments' in to_delete_str_arr:
-    print(get_string('deleting_comments', language))
-    log_file.write(get_string('deleting_comments', language) + '\n')
+    parameters_for_deleting['comments'] = []
 
     comments_file_list = os.listdir('Archive/comments')
 
@@ -133,21 +126,15 @@ if 'comments' in to_delete_str_arr:
                 if 'thread' in reply_id:
                     reply_id = reply_id.split('&')[0]
 
-                res = vk_api.execute_method('wall.deleteComment',
-                                            {'owner_id': int(owner_id), 'comment_id': int(reply_id)})
-                build_log_str(res=res, link=link, log_file=log_file)
+                parameters_for_deleting['comments'].append({'link': link, 'method': 'wall.deleteComment',
+                                                            'params': {'owner_id': int(owner_id),
+                                                                       'comment_id': int(reply_id)}})
 
-                time.sleep(random.randint(delays['normal'][0], delays['normal'][1]))
-
-                while res.get('error', {'error_code': 0}).get('error_code', 0) != 14:
-                    res = vk_api.execute_method('wall.deleteComment',
-                                                {'owner_id': int(owner_id), 'comment_id': int(reply_id)})
-                    build_log_str(res=res, link=link, log_file=log_file)
-                    time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
 
 if 'wall' in to_delete_str_arr:
-    print(get_string('deleting_wall', language))
-    log_file.write(get_string('deleting_wall', language) + '\n')
+    parameters_for_deleting['wall'] = []
+    # print(get_string('deleting_wall', language))
+    # log_file.write(get_string('deleting_wall', language) + '\n')
     wall_files = os.listdir('Archive/wall')
     wall_files = [i for i in wall_files if not os.path.isdir('Archive/wall/' + i)]
     for cur_file_name in wall_files:
@@ -159,18 +146,57 @@ if 'wall' in to_delete_str_arr:
 
                 owner_id, post_id = link.split('wall')[1].split('_')
 
-                res = vk_api.execute_method('wall.delete',
-                                            {'owner_id': int(owner_id),
-                                             'post_id': int(post_id)})
+                parameters_for_deleting['wall'].append({'link': link, 'method': 'wall.delete',
+                                                        'params': {'owner_id': int(owner_id), 'post_id': int(post_id)}})
 
-                build_log_str(res=res, link=link, log_file=log_file)
 
-                time.sleep(random.randint(delays['normal'][0], delays['normal'][1]))
 
-                while res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
-                    res = vk_api.execute_method('wall.delete',
-                                                {'owner_id': int(owner_id),
-                                                 'post_id': int(post_id)})
-                    build_log_str(res=res, link=link, log_file=log_file)
-                    time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
 
+indexes = {key: 0 for key in parameters_for_deleting.keys()}
+
+while True:
+    done = True
+    for key in parameters_for_deleting.keys():
+        print("Deleting", key, sep=' ')
+        log_file.write('Deleting ' + key + '\n')
+        for i in range(indexes[key], len(parameters_for_deleting[key])):
+            line = parameters_for_deleting[key][i]
+
+            res = vk_api.execute_method(line['method'], line['params'])
+
+            build_log_str(res=res, link=line['link'], log_file=log_file)
+
+            time.sleep(random.randint(delays['normal'][0], delays['normal'][1]))
+
+            fail_counter = 1
+
+            while res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
+                fail_counter = fail_counter + 1
+                res = vk_api.execute_method(line['method'], line['params'])
+
+                build_log_str(res=res, link=line['link'], log_file=log_file,
+                              additional=" | " + get_string('attempt_limit', language) if fail_counter >= attempts_limit else '')
+                if fail_counter >= attempts_limit:
+                    break
+                time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
+
+            indexes[key] = indexes[key] + 1
+
+            if fail_counter >= attempts_limit:
+                indexes[key] = indexes[key] - 1
+                break
+
+    for key in parameters_for_deleting.keys():
+        if indexes[key] < len(parameters_for_deleting[key])-1:
+            done = False
+
+    if done:
+        break
+
+print(get_string('done', language))
+log_file.write(get_string('done', language) + '\n')
+log_file.close()
+
+# print(len(parameters_for_deleting['likes']))
+# print(len(parameters_for_deleting['comments']))
+# print(len(parameters_for_deleting['wall']))

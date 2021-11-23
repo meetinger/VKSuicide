@@ -1,9 +1,11 @@
 import time
 from pprint import pprint
 from HTMLAnalyzer import HTMLAnalyzer
+import numpy as np
 
 # import sys
-# sys.setrecursionlimit(150000)
+#
+# sys.setrecursionlimit(15000)
 
 class HTMLDocument:
     document = []

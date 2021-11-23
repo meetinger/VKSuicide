@@ -24,6 +24,7 @@ class HTMLAnalyzer(HTMLParser, ABC):
             attr_dict = {i[0]: i[1].split() for i in attrs if i[1] is not None}
             tmp.append({'tag': tag, 'attrs': attr_dict, 'child': []})
             self.stack.append(len(tmp) - 1)
+            print(self.get_starttag_text())
 
 
     def handle_endtag(self, tag):
@@ -43,3 +44,12 @@ class HTMLAnalyzer(HTMLParser, ABC):
     def get_html_data(self):
         return self.HTMLData
 
+
+
+parser = HTMLAnalyzer()
+
+string = '''<div><a href="google.com"></a></div'''
+
+parser.feed(string)
+
+print(parser.get_html_data())

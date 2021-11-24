@@ -1,9 +1,9 @@
 import datetime
 import random
+import re
 import time
 import codecs
 
-from HTMLDocument import HTMLDocument
 from VKApi import VKApi
 from inputs import *
 from translations import get_string
@@ -159,26 +159,18 @@ if 'photos_in_messages' in to_delete_str_arr:
 
         msg_files = os.listdir('Archive/messages/' + cur_msg_dir)
         for cur_file_name in msg_files:
-            print('Archive/messages/' + cur_msg_dir + '/' + cur_file_name)
+            # print('Archive/messages/' + cur_msg_dir + '/' + cur_file_name)
             cur_file = open('Archive/messages/' + cur_msg_dir + '/' + cur_file_name, 'r')
             lines = cur_file.readlines()
 
-            document = HTMLDocument(''.join(lines))
+            text = ''.join(lines)
 
-            msgs_docs = document.get_elements_by_attributes({'class': 'message'})
+            matches = re.findall(r'<div class="message".*?<div class="attachment">.*?</div>', text, re.DOTALL)
 
-            def filter_msg(msg_doc):
-                doc = HTMLDocument(msg_doc)
-                return doc.check_attributes({'class': 'attachment'})
+            for match in matches:
+                msgs_id.append(re.sub('[^0-9]', '', re.search(r'data-id="\d*"', match).group()))
 
-            msgs_docs = list(filter(filter_msg, msgs_docs))
 
-            msgs_id.extend([i['attrs']['data-id'][0] for i in msgs_docs])
-
-        #     for line in lines:
-        #         if 'data-id=' in line:
-        #             msg_id = line.split('data-id="')[1].split('"')[0]
-        #             msgs_id.append(msg_id)
         progress_counter = progress_counter + 1
         print(get_string('archive_messages_parsing', language).format(progress_counter / len(msg_dirs)))
 
@@ -208,9 +200,10 @@ if 'photos_in_messages' in to_delete_str_arr:
         for attachment in msg['attachments']:
             if attachment['type'] == 'photo':
                 photo = attachment['photo']
-                parameters_for_deleting['photos_in_messages'].append({'link': 'no_link', 'method': 'photos.restore',
+                parameters_for_deleting['photos_in_messages'].append({'link': 'Owner-id: {} Photo-id: {}'.format(photo['owner_id'], photo['id']), 'method': 'photos.delete',
                                                                       'params': {'owner_id': photo['owner_id'],
                                                                                  'photo_id': photo['id']}})
+
 
 indexes = dict.fromkeys(to_delete_str_arr, 0)
 

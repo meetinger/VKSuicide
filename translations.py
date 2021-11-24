@@ -20,12 +20,15 @@ translation_strings = {
     [1] Лайки\n
     [2] Комментарии\n
     [3] Стена\n
-    [4] Фотографии в сообщениях(Медленно)
+    [4] Фотографии в сообщениях(Медленно)\n
+    [5] Фотографии в альбомах
     ''',
                             'en': '''Enter what you want to delete in one line separated by a space:\n
     [1] Likes\n
     [2] Comments\n
-    [4] Photos in messages(Slow)
+    [3] Wall\n
+    [4] Photos in messages(Slow)\n
+    [5] Photos in albums
                             '''},
     'error': {
         'ru': 'Ошибка',

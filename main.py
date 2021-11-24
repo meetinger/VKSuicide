@@ -54,7 +54,8 @@ user_id = vk_api.execute_method('users.get', {})['response'][0]['id']
 available_for_deletion = {1: "likes",
                           2: "comments",
                           3: "wall",
-                          4: 'photos_in_messages'}
+                          4: 'photos_in_messages',
+                          5: 'photos_in_albums'}
 
 to_delete = getArgsInline(numOfArgs=-1, allowedArgs=list(range(1, 10)),
                           startMsg=get_string('select_for_deletion', language), argType=int)
@@ -207,6 +208,23 @@ if 'photos_in_messages' in to_delete_str_arr:
                 parameters_for_deleting['photos_in_messages'].append({'link': 'Owner-id: {} Photo-id: {}'.format(photo['owner_id'], photo['id']), 'method': 'photos.delete',
                                                                       'params': {'owner_id': photo['owner_id'],
                                                                                  'photo_id': photo['id']}})
+
+if 'photos_in_albums' in to_delete_str_arr:
+    albums = os.listdir('Archive/photos/photo-albums')
+    for album in albums:
+        file = open('Archive/photos/photo-albums/'+album)
+        lines = file.readlines()
+        text = ''.join(lines)
+
+        photos_links = list(set(re.findall(r'https://vk.com/photo\d+_\d+', text)))
+
+        for link in photos_links:
+            finded = re.findall(r'\d+', link)
+            owner_id = finded[0]
+            photo_id = finded[1]
+            parameters_for_deleting['photos_in_albums'].append({'link': link, 'method': 'photos.delete',
+                                                                'params': {'owner_id': owner_id,
+                                                                           'photo_id': photo_id}})
 
 
 indexes = dict.fromkeys(to_delete_str_arr, 0)

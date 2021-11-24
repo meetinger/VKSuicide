@@ -10,6 +10,8 @@ translation_strings = {
                        'en': '''Unzipping done'''},
     'dir_archive_detected': {'ru': '''Обнаружен распакованный архив''',
                              'en': '''Unzipped archive detected'''},
+    'dir_archive_not_detected': {'ru': '''Архив не обнаружен. Убедитесь, что вы скопировали его в папку с программой''',
+                                 'en': '''The archive was not found. Make sure you have copied it to the program folder'''},
     'enter_token': {'ru': '''Введите токен, токен можно взять здесь: https://vkhost.github.io/ \nВ настройках выделите все пункты''',
                      'en': '''Enter access token, you can get token here: https://vkhost.github.io/ \nIn settings select all positions'''},
     'invalid_token': {'ru': '''Недействительный токен''',

@@ -1,6 +1,7 @@
 import datetime
 import random
 import re
+import sys
 import time
 import codecs
 
@@ -33,6 +34,9 @@ cur_dir_list = os.listdir()
 
 if 'Archive' in cur_dir_list:
     print(get_string('dir_archive_detected', language))
+else:
+    print(get_string('dir_archive_not_detected', language))
+    sys.exit()
 
 access_token = getArgsInline(numOfArgs=1, allowedArgs=lambda token: VKApi.check_token(token).get('response', -1) > 0,
                              startMsg=get_string('enter_token', language), argType=str,

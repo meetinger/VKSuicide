@@ -13,6 +13,8 @@ import os
 
 import zipfile
 
+from utils import progress_bar
+
 language = getArgs(numOfArgs=1, allowedArgs=['ru', 'en'], startMsg='Choose Language: ru, en', argType=str)[0]
 
 print(get_string('first_msg', language))
@@ -141,8 +143,6 @@ if 'comments' in to_delete_str_arr:
 
         matches = list(set(re.findall(link_regex, text)))
 
-        print(matches)
-
         for match in matches:
             owner_id = re.search(r'[-0-9]+', match).group()
             reply_id = re.search(r'reply=[-0-9]+', match).group()
@@ -155,9 +155,8 @@ if 'comments' in to_delete_str_arr:
             comment_id = re.sub('[^0-9]', '', comment_id)
 
             parameters_for_deleting['comments'].append({'link': match, 'method': 'wall.deleteComment',
-                                                                'params': {'owner_id': int(owner_id),
-                                                                           'comment_id': int(comment_id)}})
-
+                                                        'params': {'owner_id': int(owner_id),
+                                                                   'comment_id': int(comment_id)}})
 
 if 'wall' in to_delete_str_arr:
     # print(get_string('deleting_wall', language))
@@ -179,8 +178,8 @@ if 'wall' in to_delete_str_arr:
             parameters_for_deleting['wall'].append({'link': match, 'method': 'wall.delete',
                                                     'params': {'owner_id': int(owner_id), 'post_id': int(post_id)}})
 
-
 if 'photos_in_messages' in to_delete_str_arr:
+    print(get_string('archive_messages_parsing', language))
     msg_dirs = os.listdir('Archive/messages')
     msg_dirs = [i for i in msg_dirs if os.path.isdir('Archive/messages/' + i)]
 
@@ -203,17 +202,20 @@ if 'photos_in_messages' in to_delete_str_arr:
 
             for match in matches:
                 msgs_id.append(re.sub('[^0-9]', '', re.search(r'data-id="\d*"', match).group()))
+            progress_counter = progress_counter + 1/len(msg_files)
+            progress_bar(50, progress_counter, len(msg_dirs))
 
+        # progress_counter = progress_counter + 1
 
-        progress_counter = progress_counter + 1
-        print(get_string('archive_messages_parsing', language).format(progress_counter / len(msg_dirs)))
 
     msgs = []
-
+    print()
+    print(get_string('getting_list_of_msg', language))
     for i in range(1, int(len(msgs_id) / 100) + 2):
         tmp = vk_api.execute_method('messages.getById', {'message_ids': ', '.join(msgs_id[(i - 1) * 100:i * 100])})[
             'response']['items']
-        print(get_string('getting_list_of_msg', language).format(i / (int(len(msgs_id) / 100) + 1)))
+        # print(get_string('getting_list_of_msg', language).format(i / (int(len(msgs_id) / 100) + 1)))
+        progress_bar(50, i, (int(len(msgs_id) / 100) + 1))
         msgs.extend(tmp)
 
 
@@ -228,20 +230,22 @@ if 'photos_in_messages' in to_delete_str_arr:
 
     msgs = list(filter(filter_func, msgs))
 
-    print(len(msgs))
+    print()
 
     for msg in msgs:
         for attachment in msg['attachments']:
             if attachment['type'] == 'photo':
                 photo = attachment['photo']
-                parameters_for_deleting['photos_in_messages'].append({'link': 'Owner-id: {} Photo-id: {}'.format(photo['owner_id'], photo['id']), 'method': 'photos.delete',
-                                                                      'params': {'owner_id': photo['owner_id'],
-                                                                                 'photo_id': photo['id']}})
+                parameters_for_deleting['photos_in_messages'].append(
+                    {'link': 'Owner-id: {} Photo-id: {}'.format(photo['owner_id'], photo['id']),
+                     'method': 'photos.delete',
+                     'params': {'owner_id': photo['owner_id'],
+                                'photo_id': photo['id']}})
 
 if 'photos_in_albums' in to_delete_str_arr:
     albums = os.listdir('Archive/photos/photo-albums')
     for album in albums:
-        file = open('Archive/photos/photo-albums/'+album)
+        file = open('Archive/photos/photo-albums/' + album)
         lines = file.readlines()
         text = ''.join(lines)
 
@@ -255,7 +259,6 @@ if 'photos_in_albums' in to_delete_str_arr:
                                                                 'params': {'owner_id': owner_id,
                                                                            'photo_id': photo_id}})
 
-
 indexes = dict.fromkeys(to_delete_str_arr, 0)
 
 while True:
@@ -264,6 +267,7 @@ while True:
         print("Deleting", key, sep=' ')
         log_file.write('Deleting ' + key + '\n')
         for i in range(indexes[key], len(parameters_for_deleting[key])):
+
             line = parameters_for_deleting[key][i]
 
             res = vk_api.execute_method(line['method'], line['params'])
@@ -273,7 +277,7 @@ while True:
             time.sleep(random.randint(delays['normal'][0], delays['normal'][1]))
 
             fail_counter = 1
-
+            # progress_bar(50, i, len(parameters_for_deleting[key]))
             while res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
                 fail_counter = fail_counter + 1
                 res = vk_api.execute_method(line['method'], line['params'])
@@ -281,6 +285,7 @@ while True:
                 build_log_str(res=res, link=line['link'], log_file=log_file,
                               additional=" | " + get_string('attempt_limit',
                                                             language) if fail_counter >= attempts_limit else '')
+                # progress_bar(50, i, len(parameters_for_deleting[key]))
                 if fail_counter >= attempts_limit:
                     break
                 time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
@@ -301,5 +306,3 @@ while True:
 print(get_string('done', language))
 log_file.write(get_string('done', language) + '\n')
 log_file.close()
-
-

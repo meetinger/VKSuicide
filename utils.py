@@ -16,3 +16,11 @@ def find_all(string: str, substring: str):
         l1.append(i)
         index = i + 1
     return l1
+
+
+def progress_bar(length, cur, total):
+    progress = cur / total
+    done = round(length*progress)
+    eta = length-done
+    bar = f'\r[{"#"*done}{"-"*eta}] { "{:.2%}".format(progress)}'
+    print(bar, end='')

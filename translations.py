@@ -67,12 +67,12 @@ translation_strings = {
         'en': '''Deleting photos in messages'''
     },
     'archive_messages_parsing': {
-        'ru': '''Обработка архива {:.2%} завершено''',
-        'en': '''Archive parsing {:.2%} done'''
+        'ru': '''Обработка архива...''',
+        'en': '''Archive parsing...'''
     },
     'getting_list_of_msg': {
-        'ru': '''Получение списка сообщений {:.2%} завершено''',
-        'en': '''Receiving messages list {:.2%} done'''
+        'ru': '''Получение списка сообщений...''',
+        'en': '''Receiving messages list...'''
     },
     'done': {
         'ru': '''Работа завершена''',

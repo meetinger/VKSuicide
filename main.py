@@ -214,15 +214,14 @@ if 'photos_in_messages' in to_delete_str_arr:
     print(get_string('getting_list_of_msg', language))
 
     msgs_id_batches = [msgs_id[(i - 1) * 100:i * 100] for i in range(1, int(len(msgs_id) / 100) + 2)]
-    threads = []
+    get_msg_threads = []
 
     for i in range(1, int(len(msgs_id_batches)/threads_num)+2):
         tmp = getMsgWorker(vk_api, msgs_id_batches[(i-1)*threads_num:i*threads_num], len(msgs_id_batches))
-        threads.append(tmp)
+        get_msg_threads.append(tmp)
         tmp.start()
 
-    for thread in threads:
-        thread.join()
+    [thread.join() for thread in get_msg_threads]
 
 
     def filter_func(msg):

@@ -5,6 +5,7 @@ import sys
 import time
 import codecs
 
+from GlobalVars import GlobalVars
 from VKApi import VKApi
 from inputs import *
 from translations import get_string
@@ -14,6 +15,7 @@ import os
 import zipfile
 
 from utils import progress_bar
+from workers import getMsgWorker
 
 language = getArgs(numOfArgs=1, allowedArgs=['ru', 'en'], startMsg='Choose Language: ru, en', argType=str)[0]
 
@@ -178,6 +180,8 @@ if 'wall' in to_delete_str_arr:
             parameters_for_deleting['wall'].append({'link': match, 'method': 'wall.delete',
                                                     'params': {'owner_id': int(owner_id), 'post_id': int(post_id)}})
 
+
+threads_num = os.cpu_count()
 if 'photos_in_messages' in to_delete_str_arr:
     print(get_string('archive_messages_parsing', language))
     msg_dirs = os.listdir('Archive/messages')
@@ -205,21 +209,21 @@ if 'photos_in_messages' in to_delete_str_arr:
             progress_counter = progress_counter + 1/len(msg_files)
             progress_bar(50, progress_counter, len(msg_dirs))
 
-        # progress_counter = progress_counter + 1
 
-
-    msgs = []
     print()
     print(get_string('getting_list_of_msg', language))
-    for i in range(1, int(len(msgs_id) / 100) + 2):
-        tmp = vk_api.execute_method('messages.getById', {'message_ids': ', '.join(msgs_id[(i - 1) * 100:i * 100])})[
-            'response']['items']
-        # print(get_string('getting_list_of_msg', language).format(i / (int(len(msgs_id) / 100) + 1)))
-        progress_bar(50, i, (int(len(msgs_id) / 100) + 1))
-        msgs.extend(tmp)
 
+    msgs_id_batches = [msgs_id[(i - 1) * 100:i * 100] for i in range(1, int(len(msgs_id) / 100) + 2)]
+    threads = []
 
-    # msgs = vk_api.execute_method('messages.getById', {'message_ids': ', '.join(msgs_id)})['response']['items']
+    for i in range(1, int(len(msgs_id_batches)/threads_num)+2):
+        tmp = getMsgWorker(vk_api, msgs_id_batches[(i-1)*threads_num:i*threads_num], len(msgs_id_batches))
+        threads.append(tmp)
+        tmp.start()
+
+    for thread in threads:
+        thread.join()
+
 
     def filter_func(msg):
         for attachment in msg['attachments']:
@@ -228,7 +232,7 @@ if 'photos_in_messages' in to_delete_str_arr:
         return False
 
 
-    msgs = list(filter(filter_func, msgs))
+    msgs = list(filter(filter_func, GlobalVars.msgs))
 
     print()
 

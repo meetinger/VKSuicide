@@ -102,19 +102,31 @@ if 'likes' in to_delete_str_arr:
         for cur_file_name in likes_files:
             cur_file = open('Archive/likes/' + cur_dir_name + '/' + cur_file_name, 'r')
             lines = cur_file.readlines()
-            for line in lines:
-                cur_dir_name_split = cur_dir_name.split('_')[0]
-                if cur_dir_name_split in line:
-                    link = line.split('"')[1]
-                    content_type = cur_dir_name_split
-                    owner_id, second_part = link.split(content_type)[1].split('_')
-                    item_id, *reply_id = second_part.split('?reply=')
 
-                    reply_id = reply_id[0] if len(reply_id) > 0 else ''
+            text = ''.join(lines)
 
-                    parameters_for_deleting['likes'].append({'link': link, 'method': 'likes.delete',
-                                                             'params': {'type': content_type, 'owner_id': int(owner_id),
-                                                                        'item_id': int(item_id)}})
+            content_type, *modificator = cur_dir_name.split('_')
+
+            link_regex = rf'https://vk.com/{content_type}[-0-9]+_[0-9]+'
+
+            if modificator:
+                link_regex = rf'https://vk.com/{content_type}[-0-9]+_[0-9]+\?\w+\=[-0-9]+'
+
+            matches = re.findall(link_regex, text)
+
+            for match in matches:
+                owner_id = re.search(r'[-0-9]+', match).group()
+
+                item_regex = r'_[-0-9]+'
+
+                if modificator:
+                    item_regex = r'\?\w+\=[-0-9]+'
+
+                item_id = re.sub('[^0-9]', '', re.search(item_regex, match).group())
+
+                parameters_for_deleting['likes'].append({'link': match, 'method': 'likes.delete',
+                                                         'params': {'type': content_type, 'owner_id': int(owner_id),
+                                                                    'item_id': int(item_id)}})
 
 if 'comments' in to_delete_str_arr:
     comments_file_list = os.listdir('Archive/comments')
@@ -122,17 +134,30 @@ if 'comments' in to_delete_str_arr:
     for cur_file_name in comments_file_list:
         cur_file = open('Archive/comments/' + cur_file_name, 'r')
         lines = cur_file.readlines()
-        for line in lines:
-            if '<a href=' in line:
-                link = line.split('<a href="')[1].split('">')[0]
-                owner_id, second_part = link.split('wall')[1].split('_')
-                item_id, reply_id = second_part.split('?reply=')
-                if 'thread' in reply_id:
-                    reply_id = reply_id.split('&')[0]
 
-                parameters_for_deleting['comments'].append({'link': link, 'method': 'wall.deleteComment',
-                                                            'params': {'owner_id': int(owner_id),
-                                                                       'comment_id': int(reply_id)}})
+        text = ''.join(lines)
+
+        link_regex = r'https://vk.com/[a-z]+[-0-9]+_[0-9]+\?\w+\=[-0-9]+\&*\w*\=*[-0-9]*'
+
+        matches = list(set(re.findall(link_regex, text)))
+
+        print(matches)
+
+        for match in matches:
+            owner_id = re.search(r'[-0-9]+', match).group()
+            reply_id = re.search(r'reply=[-0-9]+', match).group()
+            thread_id = re.search(r'thread=[-0-9]+', match)
+            comment_id = reply_id
+            if thread_id is not None:
+                thread_id = thread_id.group()
+                comment_id = thread_id
+
+            comment_id = re.sub('[^0-9]', '', comment_id)
+
+            parameters_for_deleting['comments'].append({'link': match, 'method': 'wall.deleteComment',
+                                                                'params': {'owner_id': int(owner_id),
+                                                                           'comment_id': int(comment_id)}})
+
 
 if 'wall' in to_delete_str_arr:
     # print(get_string('deleting_wall', language))
@@ -142,14 +167,18 @@ if 'wall' in to_delete_str_arr:
     for cur_file_name in wall_files:
         cur_file = open('Archive/wall/' + cur_file_name, 'r')
         lines = cur_file.readlines()
-        for line in lines:
-            if 'href="https://vk.com/wall' in line:
-                link = line.split('href="')[1].split('">')[0]
 
-                owner_id, post_id = link.split('wall')[1].split('_')
+        text = ''.join(lines)
 
-                parameters_for_deleting['wall'].append({'link': link, 'method': 'wall.delete',
-                                                        'params': {'owner_id': int(owner_id), 'post_id': int(post_id)}})
+        matches = list(set(re.findall(r'https://vk.com/wall[-0-9]+_[0-9]+', text)))
+
+        for match in matches:
+            owner_id = re.search('[-0-9]+', match).group()
+            post_id = re.sub('[^0-9]', '', re.search('_[-0-9]+', match).group())
+
+            parameters_for_deleting['wall'].append({'link': match, 'method': 'wall.delete',
+                                                    'params': {'owner_id': int(owner_id), 'post_id': int(post_id)}})
+
 
 if 'photos_in_messages' in to_delete_str_arr:
     msg_dirs = os.listdir('Archive/messages')

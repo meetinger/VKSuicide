@@ -1,3 +1,4 @@
+import multiprocessing
 import threading
 
 
@@ -6,3 +7,6 @@ class GlobalVars:
     msgs = []
     get_msg_lock = threading.Lock()
 
+    get_msg_id_progress = 0
+    msgs_id = []
+    get_msg_id_lock = multiprocessing.Lock()

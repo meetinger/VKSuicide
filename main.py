@@ -1,4 +1,5 @@
 import datetime
+import multiprocessing
 import random
 import re
 import sys
@@ -16,7 +17,7 @@ import os
 import zipfile
 
 from utils import progress_bar
-from workers import GetMsgWorker, GetMsgIDWorker
+from workers import GetMsgWorker, GetMsgIDWorker, get_msg_id_worker
 
 if __name__ == "__main__":
 
@@ -184,7 +185,7 @@ if __name__ == "__main__":
                                                         'params': {'owner_id': int(owner_id), 'post_id': int(post_id)}})
 
 
-    threads_num = 1
+    threads_num = os.cpu_count()
     if 'photos_in_messages' in to_delete_str_arr:
         print(get_string('archive_messages_parsing', language))
         msg_dirs = os.listdir('Archive/messages')
@@ -196,29 +197,51 @@ if __name__ == "__main__":
 
         msgs_id = manager.list()
 
-        msgs_id_progress_counter = manager.Value('d', 0)
+        # msgs_id_progress_counter = manager.Value('d', 0)
 
-        msgs_id_lock = Manager().Lock()
+        msgs_id_lock = manager.Lock()
 
         progress_counter = 0
 
         time_start = time.time()
 
-        for cur_msg_dir in msg_dirs:
-            # res = vk_api.execute_method('messages.getHistoryAttachments', {'peer_id':cur_msg_dir, 'media_type': 'photo', 'count': 200})
-            # print(res)
+        pool = multiprocessing.Pool(os.cpu_count())
 
+        msgs_id = []
+
+        # progress_counter = multiprocessing.Value('d', 0)
+
+        progress_counter = manager.Value('d', 0)
+
+
+        for cur_msg_dir in msg_dirs:
             msg_files = os.listdir('Archive/messages/' + cur_msg_dir)
 
-            processes = []
+            # processes = []
+            #
+            # for i in range(1, int(len(msg_files)/threads_num)+2):
+            #     tmp = GetMsgIDWorker(msg_files[(i - 1) * threads_num:i * threads_num], cur_msg_dir, msgs_id, msgs_id_lock, msgs_id_progress_counter, len(msg_dirs))
+            #     processes.append(tmp)
+            #     tmp.start()
+            #
+            # [i.join() for i in processes]
 
-            for i in range(1, int(len(msg_files)/threads_num)+2):
-                tmp = GetMsgIDWorker(msg_files[(i - 1) * threads_num:i * threads_num], cur_msg_dir, msgs_id, msgs_id_lock, msgs_id_progress_counter, len(msg_dirs))
-                processes.append(tmp)
-                tmp.start()
+            # pool.map(get_msg_id_worker, zip(msg_files, [cur_msg_dir]*len(msg_files), [len(msg_dirs)]*len(msg_files)))
+            # print(zip(msg_files, [cur_msg_dir for _ in range(len(msg_files))], [len(msg_dirs) for _ in range(len(msg_files))]))
 
-            [i.join() for i in processes]
+            def build_arg_tuple():
+                return [(i, cur_msg_dir, len(msg_dirs), progress_counter, msgs_id_lock) for i in msg_files]
 
+
+            res = list(pool.map(get_msg_id_worker, build_arg_tuple()))
+
+            # msgs_id.extend(list(pool.map(get_msg_id_worker, build_arg_tuple())))
+
+            for i in res:
+                msgs_id.extend(i)
+
+
+            # pool.map(get_msg_id_worker, zip(msg_files, [cur_msg_dir for _ in range(len(msg_files))], [len(msg_dirs) for _ in range(len(msg_files))]))
 
             # [i.close() for i in processes]
             # for cur_file_name in msg_files:

@@ -6,6 +6,7 @@ import time
 from GlobalVars import GlobalVars
 from utils import progress_bar
 
+
 class GetMsgIDWorker(multiprocessing.Process):
     def __init__(self, msg_files, cur_msg_dir, msgs_id_array, msgs_id_lock, msgs_id_progress_counter, len_msg_dirs):
         super().__init__()
@@ -33,7 +34,7 @@ class GetMsgIDWorker(multiprocessing.Process):
 
 
 def get_msg_id_worker(args):
-    cur_file_name, cur_msg_dir, len_msg_dirs, get_msg_id_progress, msgs_id_lock = args
+    cur_file_name, cur_msg_dir, len_msg_dirs, len_msg_files, get_msg_id_progress, msgs_id_lock = args
     cur_file = open('Archive/messages/' + cur_msg_dir + '/' + cur_file_name, 'r')
     lines = cur_file.readlines()
 
@@ -43,12 +44,13 @@ def get_msg_id_worker(args):
 
     tmp = [re.sub('[^0-9]', '', re.search(r'data-id="\d*"', match).group()) for match in matches]
 
+    get_msg_id_progress.value = get_msg_id_progress.value + 1 / len_msg_files
 
-    get_msg_id_progress.value = get_msg_id_progress.value + 1 / len_msg_dirs
-
+    # print(get_msg_id_progress.value)
 
     progress_bar(50, get_msg_id_progress.value, len_msg_dirs)
     return tmp
+
 
 class GetMsgWorker(threading.Thread):
     def __init__(self, vk_api, msgs_id_batches: list, msgs_id_len):

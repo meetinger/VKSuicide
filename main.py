@@ -195,21 +195,21 @@ if __name__ == "__main__":
 
         manager = Manager()
 
-        msgs_id = manager.list()
+        # msgs_id = manager.list()
 
         # msgs_id_progress_counter = manager.Value('d', 0)
 
         msgs_id_lock = manager.Lock()
 
-        progress_counter = 0
+        # progress_counter = 0
 
         time_start = time.time()
 
-        pool = multiprocessing.Pool(os.cpu_count())
 
         msgs_id = []
 
         # progress_counter = multiprocessing.Value('d', 0)
+        pool = multiprocessing.Pool(os.cpu_count())
 
         progress_counter = manager.Value('d', 0)
 
@@ -230,7 +230,7 @@ if __name__ == "__main__":
             # print(zip(msg_files, [cur_msg_dir for _ in range(len(msg_files))], [len(msg_dirs) for _ in range(len(msg_files))]))
 
             def build_arg_tuple():
-                return [(i, cur_msg_dir, len(msg_dirs), progress_counter, msgs_id_lock) for i in msg_files]
+                return [(i, cur_msg_dir, len(msg_dirs), len(msg_files), progress_counter, msgs_id_lock) for i in msg_files]
 
 
             res = list(pool.map(get_msg_id_worker, build_arg_tuple()))

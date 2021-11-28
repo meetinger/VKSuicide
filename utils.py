@@ -18,9 +18,9 @@ def find_all(string: str, substring: str):
     return l1
 
 
-def progress_bar(length, cur, total):
+def progress_bar(length, cur, total, additional_str=''):
     progress = cur / total
     done = round(length*progress)
     eta = length-done
-    bar = f'\r[{"#"*done}{"-"*eta}] { "{:.2%}".format(progress)}'
+    bar = f'\r[{"#"*done}{"-"*eta}] { "{:.2%}".format(progress)}{" | "+additional_str if additional_str else ""}'
     print(bar, end='')

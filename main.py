@@ -17,34 +17,34 @@ import zipfile
 from utils import progress_bar
 from workers import getMsgWorker
 
-language = getArgs(numOfArgs=1, allowedArgs=['ru', 'en'], startMsg='Choose Language: ru, en', argType=str)[0]
+GlobalVars.language = getArgs(numOfArgs=1, allowedArgs=['ru', 'en'], startMsg='Choose Language: ru, en', argType=str)[0]
 
-print(get_string('first_msg', language))
+print(get_string('first_msg', GlobalVars.language))
 
 cur_dir_list = os.listdir()
 
 if 'Archive.zip' in cur_dir_list:
     ans = \
-        getArgs(numOfArgs=1, allowedArgs=['yes', 'no'], startMsg=get_string('zip_archive_detected', language),
+        getArgs(numOfArgs=1, allowedArgs=['yes', 'no'], startMsg=get_string('zip_archive_detected', GlobalVars.language),
                 argType=str)[
             0]
     if ans == "yes":
-        print(get_string('unzipping_archive', language))
+        print(get_string('unzipping_archive', GlobalVars.language))
         archive = zipfile.ZipFile('Archive.zip', 'r')
         archive.extractall('Archive')
-        print(get_string('unzipping_done', language))
+        print(get_string('unzipping_done', GlobalVars.language))
 
 cur_dir_list = os.listdir()
 
 if 'Archive' in cur_dir_list:
-    print(get_string('dir_archive_detected', language))
+    print(get_string('dir_archive_detected', GlobalVars.language))
 else:
-    print(get_string('dir_archive_not_detected', language))
+    print(get_string('dir_archive_not_detected', GlobalVars.language))
     sys.exit()
 
 access_token = getArgsInline(numOfArgs=1, allowedArgs=lambda token: VKApi.check_token(token).get('response', -1) > 0,
-                             startMsg=get_string('enter_token', language), argType=str,
-                             errMsg=get_string('invalid_token', language))[0]
+                             startMsg=get_string('enter_token', GlobalVars.language), argType=str,
+                             errMsg=get_string('invalid_token', GlobalVars.language))[0]
 
 vk_api = VKApi(access_token)
 
@@ -62,7 +62,7 @@ available_for_deletion = {1: "likes",
                           5: 'photos_in_albums'}
 
 to_delete = getArgsInline(numOfArgs=-1, allowedArgs=list(range(1, 10)),
-                          startMsg=get_string('select_for_deletion', language), argType=int)
+                          startMsg=get_string('select_for_deletion', GlobalVars.language), argType=int)
 
 to_delete_str_arr = [available_for_deletion.get(i, -1) for i in to_delete]
 
@@ -76,18 +76,19 @@ if not os.path.exists('logs/'):
 log_file = codecs.open('logs/' + log_file_name, 'a', "utf-8")
 
 
-def build_log_str(res, link, log_file, additional=''):
+def build_log_str(res, link, log_file, additional='', print_log=True):
     log_string = '[{}] {} '.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), link)
 
     if 'error' in res:
-        log_string += get_string('error', language) + " " + str(res['error'].get('error_code', '')) + " " + \
+        log_string += get_string('error', GlobalVars.language) + " " + str(res['error'].get('error_code', '')) + " " + \
                       res['error'].get('error_msg', '')
         if res['error'].get('error_code', '') == 14:
-            log_string += " | " + get_string('err14', language)
+            log_string += " | " + get_string('err14', GlobalVars.language)
     else:
-        log_string += get_string('success', language)
+        log_string += get_string('success', GlobalVars.language)
     log_string += additional
-    print(log_string)
+    if print_log:
+        print(log_string)
     log_file.write(log_string + '\n')
 
 
@@ -101,6 +102,7 @@ if 'likes' in to_delete_str_arr:
     # log_file.write(get_string('deleting_likes', language) + '\n')
     likes_dir_list = os.listdir('Archive/likes')
     likes_dir_list = [i for i in likes_dir_list if os.path.isdir('Archive/likes/' + i)]
+    progress_counter = 0
     for cur_dir_name in likes_dir_list:
         likes_files = os.listdir('Archive/likes/' + cur_dir_name)
         for cur_file_name in likes_files:
@@ -131,10 +133,14 @@ if 'likes' in to_delete_str_arr:
                 parameters_for_deleting['likes'].append({'link': match, 'method': 'likes.delete',
                                                          'params': {'type': content_type, 'owner_id': int(owner_id),
                                                                     'item_id': int(item_id)}})
+            progress_counter = progress_counter + 1/len(likes_files)
+            progress_bar(50, progress_counter, len(likes_dir_list), additional_str=get_string('archive_likes_parsing', GlobalVars.language))
+
+print()
 
 if 'comments' in to_delete_str_arr:
     comments_file_list = os.listdir('Archive/comments')
-
+    progress_counter = 0
     for cur_file_name in comments_file_list:
         cur_file = open('Archive/comments/' + cur_file_name, 'r')
         lines = cur_file.readlines()
@@ -159,12 +165,18 @@ if 'comments' in to_delete_str_arr:
             parameters_for_deleting['comments'].append({'link': match, 'method': 'wall.deleteComment',
                                                         'params': {'owner_id': int(owner_id),
                                                                    'comment_id': int(comment_id)}})
+            progress_counter = progress_counter + 1/len(matches)
+            progress_bar(50, progress_counter, len(comments_file_list),
+                         additional_str=get_string('archive_comments_parsing', GlobalVars.language))
+
+print()
 
 if 'wall' in to_delete_str_arr:
     # print(get_string('deleting_wall', language))
     # log_file.write(get_string('deleting_wall', language) + '\n')
     wall_files = os.listdir('Archive/wall')
     wall_files = [i for i in wall_files if not os.path.isdir('Archive/wall/' + i)]
+    progress_counter = 0
     for cur_file_name in wall_files:
         cur_file = open('Archive/wall/' + cur_file_name, 'r')
         lines = cur_file.readlines()
@@ -179,11 +191,16 @@ if 'wall' in to_delete_str_arr:
 
             parameters_for_deleting['wall'].append({'link': match, 'method': 'wall.delete',
                                                     'params': {'owner_id': int(owner_id), 'post_id': int(post_id)}})
+            progress_counter = progress_counter + 1/len(matches)
 
+            progress_bar(50, progress_counter, len(wall_files),
+                         additional_str=get_string('archive_wall_parsing', GlobalVars.language))
 
-threads_num = os.cpu_count()
+print()
+
+get_msg_threads_num = 15
 if 'photos_in_messages' in to_delete_str_arr:
-    print(get_string('archive_messages_parsing', language))
+    # print(get_string('archive_messages_parsing', GlobalVars.language))
     msg_dirs = os.listdir('Archive/messages')
     msg_dirs = [i for i in msg_dirs if os.path.isdir('Archive/messages/' + i)]
 
@@ -207,17 +224,16 @@ if 'photos_in_messages' in to_delete_str_arr:
             for match in matches:
                 msgs_id.append(re.sub('[^0-9]', '', re.search(r'data-id="\d*"', match).group()))
             progress_counter = progress_counter + 1/len(msg_files)
-            progress_bar(50, progress_counter, len(msg_dirs))
+            progress_bar(50, progress_counter, len(msg_dirs), additional_str=get_string('archive_messages_parsing', GlobalVars.language))
 
 
     print()
-    print(get_string('getting_list_of_msg', language))
 
     msgs_id_batches = [msgs_id[(i - 1) * 100:i * 100] for i in range(1, int(len(msgs_id) / 100) + 2)]
     get_msg_threads = []
 
-    for i in range(1, int(len(msgs_id_batches)/threads_num)+2):
-        tmp = getMsgWorker(vk_api, msgs_id_batches[(i-1)*threads_num:i*threads_num], len(msgs_id_batches))
+    for i in range(1, int(len(msgs_id_batches) / get_msg_threads_num) + 2):
+        tmp = getMsgWorker(vk_api, msgs_id_batches[(i-1) * get_msg_threads_num:i * get_msg_threads_num], len(msgs_id_batches))
         get_msg_threads.append(tmp)
         tmp.start()
 
@@ -267,31 +283,38 @@ indexes = dict.fromkeys(to_delete_str_arr, 0)
 while True:
     done = True
     for key in parameters_for_deleting.keys():
+        print(end='\r')
         print("Deleting", key, sep=' ')
         log_file.write('Deleting ' + key + '\n')
         for i in range(indexes[key], len(parameters_for_deleting[key])):
+            time.sleep(random.randint(delays['normal'][0], delays['normal'][1]))
 
             line = parameters_for_deleting[key][i]
 
             res = vk_api.execute_method(line['method'], line['params'])
 
+            print(end='\r')
+
             build_log_str(res=res, link=line['link'], log_file=log_file)
 
-            time.sleep(random.randint(delays['normal'][0], delays['normal'][1]))
-
             fail_counter = 1
-            # progress_bar(50, i, len(parameters_for_deleting[key]))
+            progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
+            # print()
             while res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
+                time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
+
                 fail_counter = fail_counter + 1
                 res = vk_api.execute_method(line['method'], line['params'])
 
+                print(end='\r')
+
                 build_log_str(res=res, link=line['link'], log_file=log_file,
                               additional=" | " + get_string('attempt_limit',
-                                                            language) if fail_counter >= attempts_limit else '')
+                                                            GlobalVars.language) if fail_counter >= attempts_limit else '')
                 # progress_bar(50, i, len(parameters_for_deleting[key]))
+                progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
                 if fail_counter >= attempts_limit:
                     break
-                time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
 
             indexes[key] = indexes[key] + 1
 
@@ -306,6 +329,6 @@ while True:
     if done:
         break
 
-print(get_string('done', language))
-log_file.write(get_string('done', language) + '\n')
+print(get_string('done', GlobalVars.language))
+log_file.write(get_string('done', GlobalVars.language) + '\n')
 log_file.close()

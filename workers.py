@@ -2,6 +2,7 @@ import threading
 import time
 
 from GlobalVars import GlobalVars
+from translations import get_string
 from utils import progress_bar
 
 
@@ -23,6 +24,6 @@ class getMsgWorker(threading.Thread):
             try:
                 GlobalVars.msgs.extend(resp['response']['items'])
                 GlobalVars.get_msg_progress = GlobalVars.get_msg_progress + 1
-                progress_bar(50, GlobalVars.get_msg_progress, self.msgs_id_len)
+                progress_bar(50, GlobalVars.get_msg_progress, self.msgs_id_len, additional_str=get_string('getting_list_of_msg', GlobalVars.language))
             finally:
                 GlobalVars.get_msg_lock.release()

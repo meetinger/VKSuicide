@@ -66,9 +66,21 @@ translation_strings = {
         'ru': '''Удаление фотографий в сообщениях''',
         'en': '''Deleting photos in messages'''
     },
+    'archive_likes_parsing': {
+        'ru': '''Обработка архива лайков...''',
+        'en': '''Archive likes parsing...'''
+    },
+    'archive_comments_parsing': {
+        'ru': '''Обработка архива комментариев...''',
+        'en': '''Archive comments parsing...'''
+    },
+    'archive_wall_parsing': {
+        'ru': '''Обработка архива стены...''',
+        'en': '''Archive wall parsing...'''
+    },
     'archive_messages_parsing': {
-        'ru': '''Обработка архива...''',
-        'en': '''Archive parsing...'''
+        'ru': '''Обработка архива сообщений...''',
+        'en': '''Archive messages parsing...'''
     },
     'getting_list_of_msg': {
         'ru': '''Получение списка сообщений...''',

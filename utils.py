@@ -24,3 +24,6 @@ def progress_bar(length, cur, total, additional_str=''):
     eta = length-done
     bar = f'\r[{"#"*done}{"-"*eta}] { "{:.2%}".format(progress)}{" | "+additional_str if additional_str else ""}'
     print(bar, end='')
+
+def clear_last_line(msg_len=100):
+    print('\r'+" "*msg_len, end='\r')

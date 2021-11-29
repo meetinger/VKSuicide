@@ -14,7 +14,7 @@ import os
 
 import zipfile
 
-from utils import progress_bar
+from utils import progress_bar, clear_last_line
 from workers import getMsgWorker
 
 GlobalVars.language = getArgs(numOfArgs=1, allowedArgs=['ru', 'en'], startMsg='Choose Language: ru, en', argType=str)[0]
@@ -92,7 +92,7 @@ def build_log_str(res, link, log_file, additional='', print_log=True):
     log_file.write(log_string + '\n')
 
 
-delays = {'normal': (0, 1), 'captcha': (2, 3)}
+delays = {'normal': (1, 5), 'captcha': (10, 30)}
 attempts_limit = 5
 
 parameters_for_deleting = dict.fromkeys(to_delete_str_arr, [])
@@ -136,9 +136,9 @@ if 'likes' in to_delete_str_arr:
             progress_counter = progress_counter + 1/len(likes_files)
             progress_bar(50, progress_counter, len(likes_dir_list), additional_str=get_string('archive_likes_parsing', GlobalVars.language))
 
-print()
 
 if 'comments' in to_delete_str_arr:
+    print()
     comments_file_list = os.listdir('Archive/comments')
     progress_counter = 0
     for cur_file_name in comments_file_list:
@@ -169,9 +169,9 @@ if 'comments' in to_delete_str_arr:
             progress_bar(50, progress_counter, len(comments_file_list),
                          additional_str=get_string('archive_comments_parsing', GlobalVars.language))
 
-print()
 
 if 'wall' in to_delete_str_arr:
+    print()
     # print(get_string('deleting_wall', language))
     # log_file.write(get_string('deleting_wall', language) + '\n')
     wall_files = os.listdir('Archive/wall')
@@ -196,10 +196,10 @@ if 'wall' in to_delete_str_arr:
             progress_bar(50, progress_counter, len(wall_files),
                          additional_str=get_string('archive_wall_parsing', GlobalVars.language))
 
-print()
 
 get_msg_threads_num = 15
 if 'photos_in_messages' in to_delete_str_arr:
+    print()
     # print(get_string('archive_messages_parsing', GlobalVars.language))
     msg_dirs = os.listdir('Archive/messages')
     msg_dirs = [i for i in msg_dirs if os.path.isdir('Archive/messages/' + i)]
@@ -280,10 +280,12 @@ if 'photos_in_albums' in to_delete_str_arr:
 
 indexes = dict.fromkeys(to_delete_str_arr, 0)
 
+print()
+
 while True:
     done = True
     for key in parameters_for_deleting.keys():
-        print(end='\r')
+        clear_last_line()
         print("Deleting", key, sep=' ')
         log_file.write('Deleting ' + key + '\n')
         for i in range(indexes[key], len(parameters_for_deleting[key])):
@@ -293,7 +295,7 @@ while True:
 
             res = vk_api.execute_method(line['method'], line['params'])
 
-            print(end='\r')
+            clear_last_line()
 
             build_log_str(res=res, link=line['link'], log_file=log_file)
 
@@ -306,7 +308,7 @@ while True:
                 fail_counter = fail_counter + 1
                 res = vk_api.execute_method(line['method'], line['params'])
 
-                print(end='\r')
+                clear_last_line()
 
                 build_log_str(res=res, link=line['link'], log_file=log_file,
                               additional=" | " + get_string('attempt_limit',

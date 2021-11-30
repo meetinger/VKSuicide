@@ -1,6 +1,10 @@
 translation_strings = {
     'first_msg': {'ru': '''Добро пожаловать в VKSuicide!\nДанная программа поможет вам удалить следы вашего присутствия во ВКонтакте!''',
                   'en': '''Welcome to VKSuicide!\nThis tool can help you to remove traces of your presence on VKontakte!'''},
+    'captcha_solver_detected': {'ru': '''Модуль распознавания капчи обнаружен!''',
+                                'en': '''Captcha solver detected!'''},
+    'captcha_solver_not_found': {'ru': '''Модуль распознавания капчи не обнаружен!''',
+                                 'en': '''Captcha solver not detected!'''},
     'zip_archive_detected': {'ru': '''Обнаружен архив, Вы хотите его распаковать? (Введите yes или no)''',
                              'en': '''Archive detected, do you want unzip it? (Enter yes or no)'''
                              },
@@ -45,6 +49,10 @@ translation_strings = {
     'err14': {
         'ru': '''Капча, ждём перед следующей попыткой''',
         'en': '''Captcha, waiting before next attempt'''
+    },
+    'err14_solver': {
+        'ru': '''Капча, решаем...''',
+        'en': '''Captcha, solving...'''
     },
     'attempt_limit': {
         'ru': '''Достигнут лимит попыток, переход на следующую задачу''',

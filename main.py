@@ -17,9 +17,22 @@ import zipfile
 from utils import progress_bar, clear_last_line
 from workers import getMsgWorker
 
+
 GlobalVars.language = getArgs(numOfArgs=1, allowedArgs=['ru', 'en'], startMsg='Choose Language: ru, en', argType=str)[0]
 
 print(get_string('first_msg', GlobalVars.language))
+
+captcha_solver = True
+
+try:
+    import vk_captchasolver as vc
+except ImportError as e:
+    captcha_solver = False
+
+if captcha_solver:
+    print(get_string('captcha_solver_detected', GlobalVars.language))
+else:
+    print(get_string('captcha_solver_not_found', GlobalVars.language))
 
 cur_dir_list = os.listdir()
 
@@ -83,7 +96,7 @@ def build_log_str(res, link, log_file, additional='', print_log=True):
         log_string += get_string('error', GlobalVars.language) + " " + str(res['error'].get('error_code', '')) + " " + \
                       res['error'].get('error_msg', '')
         if res['error'].get('error_code', '') == 14:
-            log_string += " | " + get_string('err14', GlobalVars.language)
+            log_string += " | " + (get_string('err14_solver', GlobalVars.language) if captcha_solver else get_string('err14', GlobalVars.language))
     else:
         log_string += get_string('success', GlobalVars.language)
     log_string += additional
@@ -289,7 +302,7 @@ while True:
         print("Deleting", key, sep=' ')
         log_file.write('Deleting ' + key + '\n')
         for i in range(indexes[key], len(parameters_for_deleting[key])):
-            time.sleep(random.randint(delays['normal'][0], delays['normal'][1]))
+            time.sleep(random.randint(delays['normal'][0], delays['normal'][1]) if not captcha_solver else 0)
 
             line = parameters_for_deleting[key][i]
 
@@ -303,17 +316,25 @@ while True:
             progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
             # print()
             while res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
-                time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
+                if captcha_solver:
+                    captcha_sid = res['error']['captcha_sid']
+                    captcha_key = vc.solve(sid=captcha_sid, s=1)
 
-                fail_counter = fail_counter + 1
-                res = vk_api.execute_method(line['method'], line['params'])
+                    line['params'].update({'captcha_sid': captcha_sid, 'captcha_key': captcha_key})
 
-                clear_last_line()
+                    res = vk_api.execute_method(line['method'], line['params'])
+                else:
+                    time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
 
-                build_log_str(res=res, link=line['link'], log_file=log_file,
-                              additional=" | " + get_string('attempt_limit',
-                                                            GlobalVars.language) if fail_counter >= attempts_limit else '')
-                # progress_bar(50, i, len(parameters_for_deleting[key]))
+                    fail_counter = fail_counter + 1
+                    res = vk_api.execute_method(line['method'], line['params'])
+
+                    clear_last_line()
+
+                    build_log_str(res=res, link=line['link'], log_file=log_file,
+                                  additional=" | " + get_string('attempt_limit',
+                                                                GlobalVars.language) if fail_counter >= attempts_limit else '')
+                    # progress_bar(50, i, len(parameters_for_deleting[key]))
                 progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
                 if fail_counter >= attempts_limit:
                     break

@@ -106,6 +106,10 @@ translation_strings = {
         'ru': '''Обработка архива фотографий...''',
         'en': '''Photos in albums parsing...''',
     },
+    'err9': {
+        'ru': '''Ограничение кол-ва запросов, ждём...''',
+        'en': '''Requests limit, waiting...'''
+    },
     'done': {
         'ru': '''Работа завершена''',
         'en': '''Done'''

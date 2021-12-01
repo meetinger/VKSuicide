@@ -96,6 +96,8 @@ def build_log_str(res, link, log_file, additional='', print_log=True):
                       res['error'].get('error_msg', '')
         if res['error'].get('error_code', '') == 14:
             log_string += " | " + (get_string('err14_solver', GlobalVars.language) if captcha_solver else get_string('err14', GlobalVars.language))
+        if res['error'].get('error_code', '') == 9:
+            log_string += " | " + get_string('err9', GlobalVars.language)
     else:
         log_string += get_string('success', GlobalVars.language)
     log_string += additional
@@ -104,10 +106,10 @@ def build_log_str(res, link, log_file, additional='', print_log=True):
     log_file.write(log_string + '\n')
 
 
-delays = {'normal': (1, 5), 'captcha': (10, 30)}
+delays = {'normal': (1, 5), 'captcha': (1, 2)}
 attempts_limit = 5
 
-parameters_for_deleting = dict.fromkeys(to_delete_str_arr, [])
+parameters_for_deleting = {key: [] for key in to_delete_str_arr}
 
 if 'likes' in to_delete_str_arr:
     # print(get_string('deleting_likes', language))
@@ -281,7 +283,7 @@ if 'photos_in_messages' in to_delete_str_arr:
                      'method': 'photos.delete',
                      'params': {'owner_id': photo['owner_id'],
                                 'photo_id': photo['id']}})
-                
+
     print(get_string('photos_found', GlobalVars.language).format(len(parameters_for_deleting['photos_in_messages'])), end='\r')
 
 if 'photos_in_albums' in to_delete_str_arr:
@@ -310,7 +312,7 @@ if 'photos_in_albums' in to_delete_str_arr:
     progress_bar(50, 1, 1, additional_str=get_string('photos_in_albums_parsing',
                                                      GlobalVars.language) + f' ({len(parameters_for_deleting["photos_in_albums"])})')
 
-indexes = dict.fromkeys(to_delete_str_arr, 0)
+indexes = {key: 0 for key in to_delete_str_arr}
 
 print()
 
@@ -335,7 +337,7 @@ while True:
             progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
             # print()
             while res.get('error', {'error_code': 0}).get('error_code', 0) == 14 or res.get('error', {'error_code': 0}).get('error_code', 0) == 9:
-                if captcha_solver:
+                if captcha_solver and res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
                     captcha_sid = res['error']['captcha_sid']
                     captcha_key = vc.solve(sid=captcha_sid, s=1)
 
@@ -349,14 +351,14 @@ while True:
                     time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
 
                     fail_counter = fail_counter + 1
-                    res = vk_api.execute_method(line['method'], line['params'])
-
                     clear_last_line()
+
+                    res = vk_api.execute_method(line['method'], line['params'])
 
                     build_log_str(res=res, link=line['link'], log_file=log_file,
                                   additional=" | " + get_string('attempt_limit',
                                                                 GlobalVars.language) if fail_counter >= attempts_limit else '')
-                    # progress_bar(50, i, len(parameters_for_deleting[key]))
+
                 progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
                 if fail_counter >= attempts_limit:
                     break

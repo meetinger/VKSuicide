@@ -315,7 +315,7 @@ while True:
             fail_counter = 1
             progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
             # print()
-            while res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
+            while res.get('error', {'error_code': 0}).get('error_code', 0) == 14 or res.get('error', {'error_code': 0}).get('error_code', 0) == 9:
                 if captcha_solver:
                     captcha_sid = res['error']['captcha_sid']
                     captcha_key = vc.solve(sid=captcha_sid, s=1)
@@ -323,6 +323,9 @@ while True:
                     line['params'].update({'captcha_sid': captcha_sid, 'captcha_key': captcha_key})
 
                     res = vk_api.execute_method(line['method'], line['params'])
+
+                    clear_last_line()
+                    build_log_str(res=res, link=line['link'], log_file=log_file)
                 else:
                     time.sleep(random.randint(delays['captcha'][0], delays['captcha'][1]))
 

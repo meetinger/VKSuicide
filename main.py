@@ -334,7 +334,7 @@ while True:
             build_log_str(res=res, link=line['link'], log_file=log_file)
 
             fail_counter = 1
-            progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
+            progress_bar(50, i, len(parameters_for_deleting[key])-1, additional_str='Deleting ' + key)
             # print()
             while res.get('error', {'error_code': 0}).get('error_code', 0) == 14 or res.get('error', {'error_code': 0}).get('error_code', 0) == 9:
                 if captcha_solver and res.get('error', {'error_code': 0}).get('error_code', 0) == 14:
@@ -359,7 +359,7 @@ while True:
                                   additional=" | " + get_string('attempt_limit',
                                                                 GlobalVars.language) if fail_counter >= attempts_limit else '')
 
-                progress_bar(50, i, len(parameters_for_deleting[key]), additional_str='Deleting ' + key)
+                progress_bar(50, i, len(parameters_for_deleting[key])-1, additional_str='Deleting ' + key)
                 if fail_counter >= attempts_limit:
                     break
 
@@ -376,6 +376,7 @@ while True:
     if done:
         break
 
+print()
 print(get_string('done', GlobalVars.language))
 log_file.write(get_string('done', GlobalVars.language) + '\n')
 log_file.close()

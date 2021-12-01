@@ -39,8 +39,7 @@ cur_dir_list = os.listdir()
 if 'Archive.zip' in cur_dir_list:
     ans = \
         getArgs(numOfArgs=1, allowedArgs=['yes', 'no'], startMsg=get_string('zip_archive_detected', GlobalVars.language),
-                argType=str)[
-            0]
+                argType=str)[0]
     if ans == "yes":
         print(get_string('unzipping_archive', GlobalVars.language))
         archive = zipfile.ZipFile('Archive.zip', 'r')
@@ -149,6 +148,8 @@ if 'likes' in to_delete_str_arr:
             progress_counter = progress_counter + 1/len(likes_files)
             progress_bar(50, progress_counter, len(likes_dir_list), additional_str=get_string('archive_likes_parsing', GlobalVars.language))
 
+    progress_bar(50, 1, 1, additional_str=get_string('archive_likes_parsing', GlobalVars.language)+f' ({len(parameters_for_deleting["likes"])})')
+
 
 if 'comments' in to_delete_str_arr:
     print()
@@ -182,6 +183,8 @@ if 'comments' in to_delete_str_arr:
             progress_bar(50, progress_counter, len(comments_file_list),
                          additional_str=get_string('archive_comments_parsing', GlobalVars.language))
 
+    progress_bar(50, 1, 1, additional_str=get_string('archive_comments_parsing',
+                                                     GlobalVars.language) + f' ({len(parameters_for_deleting["comments"])})')
 
 if 'wall' in to_delete_str_arr:
     print()
@@ -208,7 +211,8 @@ if 'wall' in to_delete_str_arr:
 
             progress_bar(50, progress_counter, len(wall_files),
                          additional_str=get_string('archive_wall_parsing', GlobalVars.language))
-
+    progress_bar(50, 1, 1, additional_str=get_string('archive_wall_parsing',
+                                                     GlobalVars.language) + f' ({len(parameters_for_deleting["wall"])})')
 
 get_msg_threads_num = 15
 if 'photos_in_messages' in to_delete_str_arr:
@@ -239,7 +243,8 @@ if 'photos_in_messages' in to_delete_str_arr:
             progress_counter = progress_counter + 1/len(msg_files)
             progress_bar(50, progress_counter, len(msg_dirs), additional_str=get_string('archive_messages_parsing', GlobalVars.language))
 
-
+    progress_bar(50, 1, 1, additional_str=get_string('archive_messages_parsing',
+                                                     GlobalVars.language) + f' ({len(msgs_id)})')
     print()
 
     msgs_id_batches = [msgs_id[(i - 1) * 100:i * 100] for i in range(1, int(len(msgs_id) / 100) + 2)]
@@ -252,6 +257,8 @@ if 'photos_in_messages' in to_delete_str_arr:
 
     [thread.join() for thread in get_msg_threads]
 
+    progress_bar(50, 1, 1, additional_str=get_string('getting_list_of_msg',
+                                                     GlobalVars.language) + f' ({len(GlobalVars.msgs)})')
 
     def filter_func(msg):
         for attachment in msg['attachments']:
@@ -263,6 +270,7 @@ if 'photos_in_messages' in to_delete_str_arr:
     msgs = list(filter(filter_func, GlobalVars.msgs))
 
     print()
+    print(get_string('msgs_found', GlobalVars.language).format(len(msgs)))
 
     for msg in msgs:
         for attachment in msg['attachments']:
@@ -273,8 +281,12 @@ if 'photos_in_messages' in to_delete_str_arr:
                      'method': 'photos.delete',
                      'params': {'owner_id': photo['owner_id'],
                                 'photo_id': photo['id']}})
+                
+    print(get_string('photos_found', GlobalVars.language).format(len(parameters_for_deleting['photos_in_messages'])), end='\r')
 
 if 'photos_in_albums' in to_delete_str_arr:
+    print()
+    progress_counter = 0
     albums = os.listdir('Archive/photos/photo-albums')
     for album in albums:
         file = open('Archive/photos/photo-albums/' + album)
@@ -290,6 +302,13 @@ if 'photos_in_albums' in to_delete_str_arr:
             parameters_for_deleting['photos_in_albums'].append({'link': link, 'method': 'photos.delete',
                                                                 'params': {'owner_id': owner_id,
                                                                            'photo_id': photo_id}})
+        progress_counter = progress_counter + 1
+
+        progress_bar(50, progress_counter, len(albums),
+                         additional_str=get_string('photos_in_albums_parsing', GlobalVars.language))
+
+    progress_bar(50, 1, 1, additional_str=get_string('photos_in_albums_parsing',
+                                                     GlobalVars.language) + f' ({len(parameters_for_deleting["photos_in_albums"])})')
 
 indexes = dict.fromkeys(to_delete_str_arr, 0)
 

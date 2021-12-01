@@ -94,6 +94,18 @@ translation_strings = {
         'ru': '''Получение списка сообщений...''',
         'en': '''Receiving messages list...'''
     },
+    'msgs_found': {
+        'ru': '''Найдено {} сообщений''',
+        'en': '''Found {} messages''',
+    },
+    'photos_found': {
+        'ru': '''Найдено {} фотографий''',
+        'en': '''Found {} photos''',
+    },
+    'photos_in_albums_parsing': {
+        'ru': '''Обработка архива фотографий...''',
+        'en': '''Photos in albums parsing...''',
+    },
     'done': {
         'ru': '''Работа завершена''',
         'en': '''Done'''

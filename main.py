@@ -106,7 +106,7 @@ def build_log_str(res, link, log_file, additional='', print_log=True):
     log_file.write(log_string + '\n')
 
 
-delays = {'normal': (1, 5), 'captcha': (1, 2)}
+delays = {'normal': (1, 5), 'captcha': (10, 30)}
 attempts_limit = 5
 
 parameters_for_deleting = {key: [] for key in to_delete_str_arr}

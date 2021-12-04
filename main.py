@@ -134,6 +134,9 @@ if 'likes' in to_delete_str_arr:
 
             matches = re.findall(link_regex, text)
 
+            if content_type == 'wall':
+                content_type = 'post'
+
             for match in matches:
                 owner_id = re.search(r'[-0-9]+', match).group()
 

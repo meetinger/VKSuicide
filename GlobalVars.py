@@ -6,3 +6,4 @@ class GlobalVars:
     msgs = []
     get_msg_lock = threading.Lock()
     language = ''
+    user_id = 0

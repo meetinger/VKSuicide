@@ -60,7 +60,7 @@ access_token = getArgsInline(numOfArgs=1, allowedArgs=lambda token: VKApi.check_
 
 vk_api = VKApi(access_token)
 
-user_id = vk_api.execute_method('users.get', {})['response'][0]['id']
+GlobalVars.user_id = vk_api.execute_method('users.get', {})['response'][0]['id']
 
 # token_valid = (VKApi.check_token(token).get('response', -1) > 0)
 #
@@ -265,14 +265,7 @@ if 'photos_in_messages' in to_delete_str_arr:
     progress_bar(50, 1, 1, additional_str=get_string('getting_list_of_msg',
                                                      GlobalVars.language) + f' ({len(GlobalVars.msgs)})')
 
-    def filter_func(msg):
-        for attachment in msg['attachments']:
-            if attachment['type'] == 'photo' and attachment['photo']['owner_id'] == user_id:
-                return True
-        return False
-
-
-    msgs = list(filter(filter_func, GlobalVars.msgs))
+    msgs = GlobalVars.msgs
 
     print()
     print(get_string('msgs_found', GlobalVars.language).format(len(msgs)))

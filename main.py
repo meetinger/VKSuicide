@@ -18,7 +18,7 @@ from utils import progress_bar, clear_last_line
 from workers import getMsgWorker
 
 
-GlobalVars.language = getArgs(numOfArgs=1, allowedArgs=['ru', 'en'], startMsg='Choose Language: ru, en', argType=str)[0]
+GlobalVars.language = get_args(num_of_args=1, allowed_args=['ru', 'en'], start_msg='Choose Language: ru, en', arg_type=str)[0]
 
 print(get_string('first_msg', GlobalVars.language))
 
@@ -38,8 +38,8 @@ cur_dir_list = os.listdir()
 
 if 'Archive.zip' in cur_dir_list:
     ans = \
-        getArgs(numOfArgs=1, allowedArgs=['yes', 'no'], startMsg=get_string('zip_archive_detected', GlobalVars.language),
-                argType=str)[0]
+        get_args(num_of_args=1, allowed_args=['yes', 'no'], start_msg=get_string('zip_archive_detected', GlobalVars.language),
+                 arg_type=str)[0]
     if ans == "yes":
         print(get_string('unzipping_archive', GlobalVars.language))
         archive = zipfile.ZipFile('Archive.zip', 'r')
@@ -54,9 +54,9 @@ else:
     print(get_string('dir_archive_not_detected', GlobalVars.language))
     sys.exit()
 
-access_token = getArgsInline(numOfArgs=1, allowedArgs=lambda token: VKApi.check_token(token).get('response', -1) > 0,
-                             startMsg=get_string('enter_token', GlobalVars.language), argType=str,
-                             errMsg=get_string('invalid_token', GlobalVars.language))[0]
+access_token = get_args_inline(num_of_args=1, allowed_args=lambda token: VKApi.check_token(token).get('response', -1) > 0,
+                               start_msg=get_string('enter_token', GlobalVars.language), arg_type=str,
+                               err_msg=get_string('invalid_token', GlobalVars.language))[0]
 
 vk_api = VKApi(access_token)
 
@@ -73,8 +73,8 @@ available_for_deletion = {1: "likes",
                           4: 'photos_in_messages',
                           5: 'photos_in_albums'}
 
-to_delete = getArgsInline(numOfArgs=-1, allowedArgs=list(range(1, 10)),
-                          startMsg=get_string('select_for_deletion', GlobalVars.language), argType=int)
+to_delete = get_args_inline(num_of_args=-1, allowed_args=list(range(1, 10)),
+                            start_msg=get_string('select_for_deletion', GlobalVars.language), arg_type=int)
 
 to_delete_str_arr = [available_for_deletion.get(i, -1) for i in to_delete]
 

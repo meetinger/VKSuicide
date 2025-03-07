@@ -1,12 +1,13 @@
 import os
 import re
-import time
-import queue
 import logging
 import multiprocessing as mp
 import threading
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from typing import Callable, Any, Generator
+
+from vk_suicide.services.common import process_file
 
 logger = logging.getLogger(__name__)
 
@@ -54,51 +55,21 @@ def _parse_likes_in_file(extracted_archive_path: str, cur_dir_name: str, file_na
                 }
             }
 
-
-def _process_directory(cur_dir_name: str, extracted_archive_path: str, vk_api_client: Any,
-                       total_work_count: mp.Value, total_lock: mp.Lock, progress_queue: mp.Queue) -> None:
-    dir_path = os.path.join(extracted_archive_path, cur_dir_name)
-    likes_tasks = []
-
-    for file_name in os.listdir(dir_path):
-        tasks_in_file = list(_parse_likes_in_file(extracted_archive_path, cur_dir_name, file_name))
-        with total_lock:
-            total_work_count.value += len(tasks_in_file)
-        likes_tasks.extend(tasks_in_file)
-
-    def execute_task(task: dict) -> None:
-        logger.info(f'Deleting like {task["link"]}')
-        vk_api_client.execute_method(task['method'], task['params'])
-        progress_queue.put(1)
-
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        list(executor.map(execute_task, likes_tasks))
-
-
-def _progress_monitor(progress_queue: mp.Queue, total_work_count: mp.Value,
-                     progress_callback: Callable[[int, int, str], None],
-                     done_event: mp.Event) -> None:
-    processed = 0
-    while True:
-        try:
-            progress_queue.get(timeout=0.1)
-            processed += 1
-            progress_callback(processed, total_work_count.value, 'Deleting likes...')
-        except queue.Empty:
-            if done_event.is_set() and progress_queue.empty():
-                break
-            time.sleep(0.1)
-
-
 def delete_likes(vk_api_client: Any, extracted_archive_path: str,
-                 progress_monitor: Callable[[mp.Queue, mp.Value, mp.Event], None],) -> None:
+                 progress_monitor: Callable[[mp.Queue, mp.Value, mp.Event], None]) -> None:
+
 
     likes_dir = os.path.join(extracted_archive_path, 'likes')
     if not os.path.isdir(likes_dir):
         logger.error("Директория 'likes' не найдена.")
         return
 
-    likes_dir_list = os.listdir(likes_dir)
+    file_tasks = []
+    for cur_dir_name in os.listdir(likes_dir):
+        cur_dir_path = os.path.join(likes_dir, cur_dir_name)
+        if os.path.isdir(cur_dir_path):
+            for file_name in os.listdir(cur_dir_path):
+                file_tasks.append((cur_dir_name, file_name))
 
     manager = mp.Manager()
     progress_queue = manager.Queue()
@@ -107,7 +78,7 @@ def delete_likes(vk_api_client: Any, extracted_archive_path: str,
     done_event = manager.Event()
 
     monitor_thread = threading.Thread(
-        target=progress_monitor,
+        target=partial(progress_monitor, label='Deleting likes...'),
         args=(progress_queue, total_work_count, done_event)
     )
     monitor_thread.start()
@@ -115,11 +86,18 @@ def delete_likes(vk_api_client: Any, extracted_archive_path: str,
     with ProcessPoolExecutor(max_workers=10) as executor:
         futures = [
             executor.submit(
-                _process_directory,
-                cur_dir_name, extracted_archive_path, vk_api_client,
-                total_work_count, total_lock, progress_queue
+                process_file,
+                cur_dir_name,
+                file_name,
+                likes_dir,
+                vk_api_client,
+                _parse_likes_in_file,
+                'Deleting like: {}',
+                total_work_count,
+                total_lock,
+                progress_queue
             )
-            for cur_dir_name in likes_dir_list
+            for (cur_dir_name, file_name) in file_tasks
         ]
         for future in futures:
             future.result()

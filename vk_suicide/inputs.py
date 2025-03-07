@@ -21,34 +21,37 @@ def get_args(num_of_args, allowed_args, start_msg="Enter value:", err_msg="Inval
                                      arg_type=arg_type)
 
 
-def get_args_inline(num_of_args, allowed_args, start_msg="Enter value:", err_msg="Invalid value!", args_msgs=[], arg_type=int,
-                    first_input=""):
-
+def get_args_inline(num_of_args: int,
+                    allowed_args: list | callable,
+                    start_msg: str="Enter value:",
+                    err_msg: str="Invalid value!",
+                    args_msgs: list = None,
+                    arg_type: type=int,
+                    first_input: str=""):
     is_first = True
     args = []
     if first_input:
-        args = [arg_type(j) for j in first_input.split(" ")]
+        args = [arg_type(j) for j in first_input.split()]
         is_first = False
 
-    def check_arg(args_for_check, allowed_args):
+    def check_arg(args_for_check):
         if len(args_for_check) < num_of_args or num_of_args==-1 and is_first:
             return False
         if isinstance(allowed_args, list):
             for i in args_for_check:
                 if not (arg_type(i) in allowed_args):
                     return False
-            return True
         else:
             for i in args_for_check:
                 if not allowed_args(arg_type(i)):
                     return False
-            return True
+        return True
 
-    while (not check_arg(args, allowed_args)):
+    while not check_arg(args):
         if not is_first:
             print(err_msg)
         print(start_msg)
-        tmp = input().strip().split(" ")
+        tmp = input().strip().split()
         args = [arg_type(j) for j in tmp]
         is_first = False
     return args[:num_of_args] if num_of_args > 0 else args

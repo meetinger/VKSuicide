@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "vksuicide"
+version = "0.1.1"
+description = "This program will help you remove some traces of your stay in VKontakte"
+authors = ["meetinger <meetingerdev@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+vk-captcha = "^2.0"
+requests = "^2.32.3"
+tqdm = "^4.67.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

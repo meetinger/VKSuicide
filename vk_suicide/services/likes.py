@@ -49,11 +49,11 @@ def parse_likes_in_file(file_path: str | Path) -> Generator[dict, None, None]:
             }
 
 def likes_files_iterator(extracted_archive_path: str) -> Generator[Path, None, None]:
-    category_dir = os.path.join(extracted_archive_path, 'likes')
-    if not os.path.isdir(category_dir):
+    category_dir = Path(extracted_archive_path, 'likes')
+    if not category_dir.exists():
         return
-    for likes_dir in os.listdir(category_dir):
-        cur_dir_path = os.path.join(category_dir, likes_dir)
-        if os.path.isdir(cur_dir_path):
-            for file_name in os.listdir(cur_dir_path):
-                yield Path(cur_dir_path) / file_name
+    for content_type_dir in category_dir.iterdir():
+        cur_dir_path = category_dir / content_type_dir
+        if cur_dir_path.is_dir():
+            for file_name in cur_dir_path.iterdir():
+                yield (cur_dir_path / file_name).absolute()

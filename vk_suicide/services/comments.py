@@ -4,8 +4,6 @@ from typing import Generator
 
 
 def _parse_likes_in_file(extracted_archive_path: str, file_name: str) -> Generator:
-    comments_file_list = os.listdir(f'{extracted_archive_path}/comments')
-
     link_regex = r'https://vk.com/[a-z]+[-0-9]+_[0-9]+\?\w+\=[-0-9]+\&*\w*\=*[-0-9]*'
 
     with open(f'{extracted_archive_path}/comments/{file_name}', 'r') as f:
@@ -22,6 +20,57 @@ def _parse_likes_in_file(extracted_archive_path: str, file_name: str) -> Generat
         yield {'link': match, 'method': 'wall.deleteComment',
                                                         'params': {'owner_id': int(owner_id),
                                                                    'comment_id': int(comment_id)}}
+
+
+def delete_comments(vk_api_client: Any, extracted_archive_path: str,
+                 progress_monitor: Callable[[mp.Queue, mp.Value, mp.Event], None]) -> None:
+
+
+    likes_dir = os.path.join(extracted_archive_path, 'likes')
+    if not os.path.isdir(likes_dir):
+        logger.error("Директория 'likes' не найдена.")
+        return
+
+    file_tasks = []
+    for cur_dir_name in os.listdir(likes_dir):
+        cur_dir_path = os.path.join(likes_dir, cur_dir_name)
+        if os.path.isdir(cur_dir_path):
+            for file_name in os.listdir(cur_dir_path):
+                file_tasks.append((cur_dir_name, file_name))
+
+    manager = mp.Manager()
+    progress_queue = manager.Queue()
+    total_work_count = manager.Value('i', 0)
+    total_lock = manager.Lock()
+    done_event = manager.Event()
+
+    monitor_thread = threading.Thread(
+        target=partial(progress_monitor, label='Deleting likes...'),
+        args=(progress_queue, total_work_count, done_event)
+    )
+    monitor_thread.start()
+
+    with ProcessPoolExecutor(max_workers=10) as executor:
+        futures = [
+            executor.submit(
+                process_file,
+                cur_dir_name,
+                file_name,
+                likes_dir,
+                vk_api_client,
+                _parse_likes_in_file,
+                'Deleting like: {}',
+                total_work_count,
+                total_lock,
+                progress_queue
+            )
+            for (cur_dir_name, file_name) in file_tasks
+        ]
+        for future in futures:
+            future.result()
+
+    done_event.set()
+    monitor_thread.join()
 
 
 if 'comments' in to_delete_str_arr:
@@ -58,3 +107,5 @@ if 'comments' in to_delete_str_arr:
 
     progress_bar(50, 1, 1, additional_str=get_string('archive_comments_parsing',
                                                      GlobalVars.language) + f' ({len(parameters_for_deleting["comments"])})')
+
+

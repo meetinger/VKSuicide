@@ -6,7 +6,7 @@ import time
 import codecs
 
 from GlobalVars import GlobalVars
-from VKApiClient import VKApi
+from vk_api_client import VKApi
 from inputs import *
 from translations import get_string
 

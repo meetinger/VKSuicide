@@ -13,15 +13,10 @@ from vk_suicide.loggers import get_logger
 
 logger = get_logger(__name__)
 
-class _TaskDataParams(TypedDict):
-    type: str
-    owner_id: int
-    item_id: int
-
 class ApiTaskData(TypedDict):
     link: str
     method: str
-    params: _TaskDataParams
+    params: dict
 
 
 def progress_monitor_factory(progress_callback: Callable[[int, int], None]) -> Callable[[Queue, Any, Any], None]:

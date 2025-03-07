@@ -1,4 +1,3 @@
-import os
 import re
 from pathlib import Path
 from typing import Generator
@@ -15,9 +14,7 @@ def parse_likes_in_file(extracted_archive_path: str, file_name: str) -> Generato
         reply_id = re.search(r'reply=[-0-9]+', match).group()
         thread_id = re.search(r'thread=[-0-9]+', match)
         comment_id = reply_id
-        if thread_id is not None:
-            thread_id = thread_id.group()
-            comment_id = thread_id
+
         yield {'link': match, 'method': 'wall.deleteComment',
                                                         'params': {'owner_id': int(owner_id),
                                                                    'comment_id': int(comment_id)}}

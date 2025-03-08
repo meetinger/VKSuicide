@@ -4,9 +4,11 @@ import logging
 from pathlib import Path
 from typing import  Generator
 
+from vk_suicide.services.common import ApiTaskData
+
 logger = logging.getLogger(__name__)
 
-def parse_likes_in_file(file_path: str | Path) -> Generator[dict, None, None]:
+def parse_likes_from_file(file_path: str | Path) -> Generator[ApiTaskData, None, None]:
     file_path = Path(file_path)
 
     likes_dir, file_name = file_path.parts[-2], file_path.name
@@ -27,7 +29,8 @@ def parse_likes_in_file(file_path: str | Path) -> Generator[dict, None, None]:
     with open(file_path, 'r', encoding='utf-8') as f:
         text = f.read()
 
-    for match in regex.findall(text):
+    for match_obj in regex.finditer(text):
+        match = match_obj.group(0)
         owner_match = re.search(r'-?\d+', match)
         if not owner_match:
             continue

@@ -2,14 +2,17 @@ import re
 from pathlib import Path
 from typing import Generator
 
+from vk_suicide.services.common import ApiTaskData
 
-def parse_likes_in_file(extracted_archive_path: str, file_name: str) -> Generator:
+
+def parse_comments_from_file(extracted_archive_path: str, file_name: str) -> Generator[ApiTaskData, None, None]:
     link_regex = r'https://vk.com/[a-z]+[-0-9]+_[0-9]+\?\w+\=[-0-9]+\&*\w*\=*[-0-9]*'
 
     with open(f'{extracted_archive_path}/comments/{file_name}', 'r') as f:
         text = f.read()
 
-    for match in re.findall(link_regex, text):
+    for match_obj in re.finditer(link_regex, text):
+        match = match_obj.group(0)
         owner_id = re.search(r'[-0-9]+', match).group()
         reply_id = re.search(r'reply=[-0-9]+', match).group()
         thread_id = re.search(r'thread=[-0-9]+', match)

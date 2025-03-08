@@ -1,4 +1,5 @@
 import multiprocessing as mp
+import datetime as dt
 import os
 import queue
 import threading
@@ -7,6 +8,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from multiprocessing import Queue
 from typing import Generator, Callable, Any, TypedDict
+
+from tqdm import tqdm
 
 from vk_suicide.vk_api_client import VKApiClient
 from vk_suicide.loggers import get_logger
@@ -39,7 +42,7 @@ def progress_monitor_factory(progress_callback: Callable[[int, int], None]) -> C
 def process_file(
         vk_api_client: VKApiClient,
         file_path: str,
-        file_parser: Callable[[str, str, str], Generator],
+        file_parser: Callable[[str], Generator],
         total_work_count: mp.Value,
         total_lock: mp.Lock,
         progress_queue: mp.Queue) -> None:
@@ -63,7 +66,7 @@ def process_file(
 
 def delete_category(vk_api_client: Any,
                     files_iterator: Callable[[], Generator],
-                    file_parser: Callable[[str, str, str], Generator],
+                    file_parser: Callable[[str], Generator],
                     progress_monitor: Callable[[mp.Queue, mp.Value, mp.Event], None]) -> None:
 
     manager = mp.Manager()
@@ -100,3 +103,21 @@ def delete_category(vk_api_client: Any,
 
     done_event.set()
     monitor_thread.join()
+
+def progress_callback_cli_factory(description: str) -> Callable[[int, int], None]:
+    pbar = None
+
+    def _progress_callback_cli(processed: int, total: int) -> None:
+        nonlocal pbar
+
+        if pbar is None:
+            pbar = tqdm(total=total, desc=description)
+
+        pbar.n = processed
+        pbar.refresh()
+
+        if processed >= total:
+            pbar.close()
+            pbar = None
+
+    return _progress_callback_cli

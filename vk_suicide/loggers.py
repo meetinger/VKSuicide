@@ -16,7 +16,7 @@ def get_logger(name: str = "logger"):
     console_handler.setLevel(level)
     console_handler.setFormatter(formatter)
 
-    file_handler = logging.FileHandler(f"vk_suicide{dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log",
+    file_handler = logging.FileHandler(f"vk_suicide_{dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log",
                                        mode="a", encoding="utf-8")
     file_handler.setFormatter(formatter)
 

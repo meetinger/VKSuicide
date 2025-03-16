@@ -5,10 +5,10 @@ from typing import Generator
 from vk_suicide.services.common import ApiTaskData
 
 
-def parse_comments_from_file(extracted_archive_path: str, file_name: str) -> Generator[ApiTaskData, None, None]:
+def parse_comments_from_file(file_name: str) -> Generator:
     link_regex = r'https://vk.com/[a-z]+[-0-9]+_[0-9]+\?\w+\=[-0-9]+\&*\w*\=*[-0-9]*'
 
-    with open(f'{extracted_archive_path}/comments/{file_name}', 'r') as f:
+    with open(file_name, 'r') as f:
         text = f.read()
 
     for match_obj in re.finditer(link_regex, text):

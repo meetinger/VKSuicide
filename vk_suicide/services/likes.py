@@ -54,7 +54,7 @@ def parse_likes_from_file(file_path: str | Path) -> Generator[ApiTaskData, None,
 def likes_files_iterator(extracted_archive_path: str) -> Generator[Path, None, None]:
     category_dir = Path(extracted_archive_path, 'likes')
     if not category_dir.exists():
-        return
+        return None
     for content_type_dir in category_dir.iterdir():
         cur_dir_path = category_dir / content_type_dir
         if cur_dir_path.is_dir():

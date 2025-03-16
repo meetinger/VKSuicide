@@ -1,5 +1,4 @@
 import multiprocessing as mp
-import datetime as dt
 import os
 import queue
 import threading
@@ -65,7 +64,7 @@ def process_file(
 
 
 def delete_category(vk_api_client: Any,
-                    files_iterator: Callable[[], Generator],
+                    files_iterator: Generator,
                     file_parser: Callable[[str], Generator],
                     progress_monitor: Callable[[mp.Queue, mp.Value, mp.Event], None]) -> None:
 
@@ -81,7 +80,7 @@ def delete_category(vk_api_client: Any,
     )
     monitor_thread.start()
 
-    files = list(files_iterator())
+    files = list(files_iterator)
     process_workers_count = min(len(files), os.cpu_count())
 
     with ProcessPoolExecutor(max_workers=process_workers_count) as executor:

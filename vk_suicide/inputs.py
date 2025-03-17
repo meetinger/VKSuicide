@@ -1,17 +1,19 @@
+from collections.abc import Callable
 from typing import Literal
 
 
 def get_args(num_of_args: int,
-             allowed_args: list | callable,
+             allowed_args: list | Callable,
              start_msg: str = "Enter value:",
              err_msg: str = "Invalid value!",
              args_msgs: list = None,
              arg_type: type = int,
+             print_func: Callable = print,
              mode: Literal['auto', 'line_by_line', 'inline'] = "inline"):
     if args_msgs is None:
         args_msgs = []
     if mode == "auto":
-        print(start_msg)
+        print_func(start_msg)
         first_input = input().strip()
         if len(first_input.split()) > 1:
             return get_args_inline(num_of_args=num_of_args, allowed_args=allowed_args, start_msg=start_msg,
@@ -35,11 +37,12 @@ def get_args(num_of_args: int,
 
 
 def get_args_inline(num_of_args: int,
-                    allowed_args: list | callable,
+                    allowed_args: list | Callable,
                     start_msg: str = "Enter value:",
                     err_msg: str = "Invalid value!",
                     args_msgs: list = None,
                     arg_type: type = int,
+                    print_func: Callable = print,
                     first_input: str = ""):
     is_first = True
     args = []
@@ -62,8 +65,8 @@ def get_args_inline(num_of_args: int,
 
     while not check_arg(args):
         if not is_first:
-            print(err_msg)
-        print(start_msg)
+            print_func(err_msg)
+        print_func(start_msg)
         tmp = input().strip().split()
         args = [arg_type(j) for j in tmp]
         is_first = False
@@ -71,11 +74,12 @@ def get_args_inline(num_of_args: int,
 
 
 def get_args_line_by_line(num_of_args: int,
-                          allowed_args: list | callable,
+                          allowed_args: list | Callable,
                           start_msg: str = "Enter value:",
                           err_msg: str = "Invalid value!",
                           args_msgs=None,
                           arg_type: type = int,
+                          print_func: Callable=print,
                           first_input=None):
     def check_arg(value):
         if isinstance(allowed_args, list):
@@ -93,17 +97,17 @@ def get_args_line_by_line(num_of_args: int,
     args = [0] * num_of_args
 
     if not first_input:
-        print(start_msg)
+        print_func(start_msg)
 
     for i in range(0, num_of_args):
         if i == 0 and first_input is not None:
             tmp = first_input
         else:
-            print(args_msgs[i])
+            print_func(args_msgs[i])
             tmp = input()
         while not check_arg(tmp):
-            print(err_msg)
-            print(args_msgs[i])
+            print_func(err_msg)
+            print_func(args_msgs[i])
             tmp = input()
         args[i] = arg_type(tmp)
     return args

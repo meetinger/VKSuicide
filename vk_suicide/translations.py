@@ -3,8 +3,8 @@ translation_strings = {
                   'en': '''Welcome to VKSuicide!\nThis tool can help you to remove traces of your presence on VKontakte!'''},
     'captcha_solver_detected': {'ru': '''Модуль распознавания капчи обнаружен!''',
                                 'en': '''Captcha solver detected!'''},
-    'captcha_solver_not_found': {'ru': '''Модуль распознавания капчи не обнаружен!''',
-                                 'en': '''Captcha solver not detected!'''},
+    'captcha_solver_not_found': {'ru': '''Модуль распознавания капчи не обнаружен! Продолжить? (Введите yes или no)''',
+                                 'en': '''Captcha solver not detected! (Enter yes or no)'''},
     'zip_archive_detected': {'ru': '''Обнаружен архив, Вы хотите его распаковать? (Введите yes или no)''',
                              'en': '''Archive detected, do you want unzip it? (Enter yes or no)'''
                              },

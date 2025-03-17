@@ -6,4 +6,4 @@ Archive_big
 logs
 __pycache__
 .idea/
-.log
+*.log

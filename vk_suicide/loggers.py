@@ -12,9 +12,13 @@ def get_logger(name: str = "logger"):
         "%(asctime)s - [%(levelname)s] - %(name)s - %(module)s:%(lineno)d - %(message)s"
     )
 
+    formatter_console = logging.Formatter(
+        "[%(levelname)s] - %(message)s"
+    )
+
     console_handler = logging.StreamHandler()
     console_handler.setLevel(level)
-    console_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter_console)
 
     file_handler = logging.FileHandler(f"vk_suicide_{dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log",
                                        mode="a", encoding="utf-8")

@@ -19,21 +19,32 @@ def get_args(num_of_args: int,
             return get_args_inline(num_of_args=num_of_args, allowed_args=allowed_args, start_msg=start_msg,
                                    err_msg=err_msg,
                                    args_msgs=args_msgs,
-                                   arg_type=arg_type, first_input=first_input)
+                                   arg_type=arg_type,
+                                   first_input=first_input,
+                                   print_func=print_func)
         else:
             return get_args_line_by_line(num_of_args=num_of_args, allowed_args=allowed_args, start_msg=start_msg,
                                          err_msg=err_msg,
                                          args_msgs=args_msgs,
-                                         arg_type=arg_type, first_input=first_input)
+                                         arg_type=arg_type,
+                                         first_input=first_input,
+                                         print_func=print_func)
     elif mode == "inline":
-        return get_args_inline(num_of_args=num_of_args, allowed_args=allowed_args, start_msg=start_msg, err_msg=err_msg,
+        return get_args_inline(num_of_args=num_of_args,
+                               allowed_args=allowed_args,
+                               start_msg=start_msg,
+                               err_msg=err_msg,
                                args_msgs=args_msgs,
-                               arg_type=arg_type)
+                               arg_type=arg_type,
+                               print_func=print_func)
     elif mode == "line_by_line":
-        return get_args_line_by_line(num_of_args=num_of_args, allowed_args=allowed_args, start_msg=start_msg,
+        return get_args_line_by_line(num_of_args=num_of_args,
+                                     allowed_args=allowed_args,
+                                     start_msg=start_msg,
                                      err_msg=err_msg,
                                      args_msgs=args_msgs,
-                                     arg_type=arg_type)
+                                     arg_type=arg_type,
+                                     print_func=print_func)
 
 
 def get_args_inline(num_of_args: int,

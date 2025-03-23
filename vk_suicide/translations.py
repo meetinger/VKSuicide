@@ -1,4 +1,6 @@
 translation_strings = {
+    'choose_language': {'ru': '''Выберите язык (Введите ru или en)''',
+                        'en': '''Choose language (Enter ru or en)'''},
     'first_msg': {'ru': '''Добро пожаловать в VKSuicide!\nДанная программа поможет вам удалить следы вашего присутствия во ВКонтакте!''',
                   'en': '''Welcome to VKSuicide!\nThis tool can help you to remove traces of your presence on VKontakte!'''},
     'captcha_solver_detected': {'ru': '''Модуль распознавания капчи обнаружен!''',

@@ -96,37 +96,46 @@ translation_strings = {
         'ru': '''Удаление фотографий в альбомах''',
         'en': '''Deleting photos in albums'''
     },
-    'archive_likes_parsing': {
-        'ru': '''Обработка архива лайков...''',
-        'en': '''Archive likes parsing...'''
+    'likes_files_not_found': {
+        'ru': '''Файлы лайков не обнаружены''',
+        'en': '''Likes files not found'''
     },
-    'archive_comments_parsing': {
-        'ru': '''Обработка архива комментариев...''',
-        'en': '''Archive comments parsing...'''
+    'comments_files_not_found': {
+        'ru': '''Файлы комментариев не обнаружены''',
+        'en': '''Comments files not found''',
     },
-    'archive_wall_parsing': {
-        'ru': '''Обработка архива стены...''',
-        'en': '''Archive wall parsing...'''
+    'wall_files_not_found': {
+        'ru': '''Файлы стены не обнаружены''',
+        'en': '''Wall files not found'''
     },
-    'archive_messages_parsing': {
-        'ru': '''Обработка архива сообщений...''',
-        'en': '''Archive messages parsing...'''
+    'photos_in_albums_files_not_found': {
+        'ru': '''Файлы фотографий в альбомах не обнаружены''',
+        'en': '''Photos in albums files not found'''
     },
-    'getting_list_of_msg': {
-        'ru': '''Получение списка сообщений...''',
-        'en': '''Receiving messages list...'''
+    'photos_in_messages_files_not_found': {
+        'ru': '''Файлы фотографий в сообщениях не обнаружены''',
+        'en': '''Photos in messages files not found'''
     },
-    'msgs_found': {
-        'ru': '''Найдено {} сообщений''',
-        'en': '''Found {} messages''',
+
+    'likes_deleted': {
+        'ru': '''Лайки удалены''',
+        'en': '''Likes deleted'''
     },
-    'photos_found': {
-        'ru': '''Найдено {} фотографий''',
-        'en': '''Found {} photos''',
+    'comments_deleted': {
+        'ru': '''Комментарии удалены''',
+        'en': '''Comments deleted'''
     },
-    'photos_in_albums_parsing': {
-        'ru': '''Обработка архива фотографий...''',
-        'en': '''Photos in albums parsing...''',
+    'wall_deleted': {
+        'ru': '''Стена удалена''',
+        'en': '''Wall deleted'''
+    },
+    'photos_in_albums_deleted': {
+        'ru': '''Фотографии в альбомах удалены''',
+        'en': '''Photos in albums deleted'''
+    },
+    'photos_in_messages_deleted': {
+        'ru': '''Фотографии в сообщениях удалены''',
+        'en': '''Photos in messages deleted'''
     },
     'err9': {
         'ru': '''Ограничение кол-ва запросов, ждём...''',

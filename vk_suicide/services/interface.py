@@ -28,7 +28,7 @@ class ServiceInterface:
     def delete_likes(self) -> None:
         likes_files = likes_files_iterator(self.extracted_archive_path)
         if likes_files is None:
-            return logger.warning('Likes files in archive not found')
+            return logger.warning(self.get_string('likes_files_not_found'))
 
         delete_category(
             vk_api_client=self.vk_api_client,
@@ -37,12 +37,12 @@ class ServiceInterface:
             progress_monitor=self.progress_monitor_factory(self.get_string('deleting_likes'))
         )
 
-        logger.info('Likes deleted')
+        logger.info(self.get_string('likes_deleted'))
 
     def delete_comments(self) -> None:
         files_comments = comments_files_iterator(self.extracted_archive_path)
         if files_comments is None:
-            return logger.warning('Comments files in archive not found')
+            return logger.warning(self.get_string('comments_files_not_found'))
 
         delete_category(
             vk_api_client=self.vk_api_client,
@@ -51,13 +51,13 @@ class ServiceInterface:
             progress_monitor=self.progress_monitor_factory(self.get_string('deleting_comments'))
         )
 
-        logger.info('Comments deleted')
+        logger.info(self.get_string('comments_deleted'))
 
     def delete_wall(self) -> None:
         wall_posts_files = wall_files_iterator(self.extracted_archive_path)
 
         if wall_posts_files is None:
-            return logger.warning('Wall posts files in archive not found')
+            return logger.warning(self.get_string('wall_files_not_found'))
 
         delete_category(
             vk_api_client=self.vk_api_client,
@@ -66,12 +66,12 @@ class ServiceInterface:
             progress_monitor=self.progress_monitor_factory(self.get_string('deleting_wall'))
         )
 
-        logger.info('Wall posts deleted')
+        logger.info(self.get_string('wall_deleted'))
 
     def delete_photos_in_albums(self):
         photos_in_albums_files = photos_in_albums_files_iterator(self.extracted_archive_path)
         if photos_in_albums_files is None:
-            return logger.warning('Photos in albums files in archive not found')
+            return logger.warning(self.get_string('photos_in_albums_files_not_found'))
 
         delete_category(
             vk_api_client=self.vk_api_client,
@@ -80,12 +80,12 @@ class ServiceInterface:
             progress_monitor=self.progress_monitor_factory(self.get_string('deleting_photos_in_albums'))
         )
 
-        logger.info('Photos in albums deleted')
+        logger.info(self.get_string('photos_in_albums_deleted'))
 
     def delete_photos_in_messages(self):
         photos_in_messages_files = photos_in_albums_files_iterator(self.extracted_archive_path)
         if photos_in_messages_files is None:
-            return logger.warning('Photos in messages files in archive not found')
+            return logger.warning(self.get_string('photos_in_messages_files_not_found'))
 
         delete_category(
             vk_api_client=self.vk_api_client,
@@ -94,4 +94,4 @@ class ServiceInterface:
             progress_monitor=self.progress_monitor_factory(self.get_string('deleting_photos_in_messages'))
         )
 
-        logger.info('Photos in messages deleted')
+        logger.info(self.get_string('photos_in_messages_deleted'))

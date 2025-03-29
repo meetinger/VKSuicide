@@ -96,7 +96,11 @@ def progress_monitor_cli_factory(description: str) -> Callable[[list, Any, Any],
         while not done_event.is_set():
             processed = len(progress_list)
             if pbar is None:
-                pbar = tqdm(total=total.value, desc=description, dynamic_ncols=True, leave=True)
+                pbar = tqdm(total=total.value, desc=description, dynamic_ncols=True, leave=True,
+                            bar_format="{desc}: |{bar}| {percentage:3.0f}% "
+                                       "({n_fmt}/{total_fmt}) "
+                                       "[{elapsed}<{remaining}, {rate_fmt}]"
+                            )
 
             pbar.total = total.value
             pbar.update(processed - pbar.n)

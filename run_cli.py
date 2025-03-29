@@ -8,14 +8,7 @@ from vk_suicide.loggers import get_logger
 from vk_suicide.services.common import progress_callback_cli_factory
 from vk_suicide.services.interface import ServiceInterface
 from vk_suicide.translations import get_string
-from vk_suicide.vk_api_client import VKApiClient
-
-CAPTCHA_SOLVER = True
-try:
-    from vk_captcha import VkCaptchaSolver
-    CAPTCHA_SOLVER = True
-except ImportError as e:
-    CAPTCHA_SOLVER = False
+from vk_suicide.vk_api_client import VKApiClient, CAPTCHA_SOLVER
 
 logger = get_logger(__name__)
 
@@ -111,12 +104,6 @@ def main():
 
     if DeleteCategory.PHOTOS_IN_ALBUMS.value in for_deletion:
         service_interface.delete_photos_in_albums()
-
-
-
-
-
-
 
 if __name__ == '__main__':
     main()

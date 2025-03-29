@@ -38,7 +38,9 @@ cur_dir_list = os.listdir()
 
 if 'Archive.zip' in cur_dir_list:
     ans = \
-        get_args(num_of_args=1, allowed_args=['yes', 'no'], start_msg=get_string('zip_archive_detected', GlobalVars.language),
+        get_args(num_of_args=1,
+                 allowed_args=['yes', 'no'],
+                 start_msg=get_string('zip_archive_detected', GlobalVars.language),
                  arg_type=str)[0]
     if ans == "yes":
         print(get_string('unzipping_archive', GlobalVars.language))

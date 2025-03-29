@@ -11,7 +11,7 @@ CAPTCHA_SOLVER = True
 try:
     from vk_captcha import VkCaptchaSolver
     CAPTCHA_SOLVER = True
-except ImportError:
+except ImportError as e:
     CAPTCHA_SOLVER = False
 
 logger = get_logger(__name__)
@@ -63,11 +63,11 @@ def main():
     else:
         logger.info(_get_s('dir_archive_not_detected'))
 
-    access_token = get_args(num_of_args=1, allowed_args=lambda token: VKApiClient.check_token(token).get('response', -1) > 0,
-                    start_msg=_get_s('enter_token'), arg_type=str,
-                    err_msg=_get_s('invalid_token'))[0]
+    token = get_args(num_of_args=1,
+                                 start_msg=_get_s('enter_token'),
+                                 arg_type=str, print_func=logger.info)[0]
 
-    vk_api_client = VKApiClient(access_token)
+
 
 
 

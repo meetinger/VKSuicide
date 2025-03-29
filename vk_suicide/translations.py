@@ -18,22 +18,38 @@ translation_strings = {
                              'en': '''Unzipped archive detected'''},
     'dir_archive_not_detected': {'ru': '''Архив не обнаружен. Убедитесь, что вы скопировали его в папку с программой''',
                                  'en': '''The archive was not found. Make sure you have copied it to the program folder'''},
+    'auth_type': {'ru': '''Выберите тип авторизации(введите 1 или 2):\n
+[1] Логин/Пароль
+[2] Токен
+    ''',
+                  'en': '''Select authorization type(enter 1 or 2):\n
+[1] Login/Password
+[2] Token
+                  '''},
+    'enter_login': {'ru': '''Введите логин''',
+              'en': '''Enter login'''},
+    'enter_password': {'ru': '''Введите пароль''',
+                 'en': '''Enter password'''},
+    'enter_2fa': {
+        'ru': '''Введите код 2FA''',
+        'en': '''Enter 2FA code'''
+    },
     'enter_token': {'ru': '''Введите токен, токен можно взять здесь: https://vkhost.github.io/ \nВ настройках выделите все пункты''',
                      'en': '''Enter access token, you can get token here: https://vkhost.github.io/ \nIn settings select all positions'''},
     'invalid_token': {'ru': '''Недействительный токен''',
                       'en': '''Invalid token'''},
     'select_for_deletion': {'ru': '''Введите то, что нужно удалить в одной строке через пробел:\n
-    [1] Лайки\n
-    [2] Комментарии\n
-    [3] Стена\n
-    [4] Фотографии в сообщениях(Медленно)\n
+    [1] Лайки
+    [2] Комментарии
+    [3] Стена
+    [4] Фотографии в сообщениях(Медленно)
     [5] Фотографии в альбомах
     ''',
                             'en': '''Enter what you want to delete in one line separated by a space:\n
-    [1] Likes\n
-    [2] Comments\n
-    [3] Wall\n
-    [4] Photos in messages(Slow)\n
+    [1] Likes
+    [2] Comments
+    [3] Wall
+    [4] Photos in messages(Slow)
     [5] Photos in albums
                             '''},
     'error': {

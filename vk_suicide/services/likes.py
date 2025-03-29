@@ -1,10 +1,11 @@
-import os
 import re
 import logging
 from pathlib import Path
-from typing import  Generator
+from typing import Generator
+from charset_normalizer import from_path
 
 from vk_suicide.services.common import ApiTaskData
+from vk_suicide.utils import AutoOpen
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ def parse_likes_from_file(file_path: str | Path) -> Generator[ApiTaskData, None,
 
     regex = re.compile(regex)
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with AutoOpen(file_path) as f:
         text = f.read()
 
     for match_obj in regex.finditer(text):

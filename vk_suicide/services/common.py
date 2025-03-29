@@ -76,7 +76,9 @@ def delete_category(vk_api_client: Any,
 
     monitor_thread = threading.Thread(
         target=progress_monitor,
-        args=(progress_queue, total_work_count, done_event)
+        args=(progress_queue,
+              total_work_count,
+              done_event)
     )
     monitor_thread.start()
 
@@ -86,7 +88,7 @@ def delete_category(vk_api_client: Any,
     with ProcessPoolExecutor(max_workers=process_workers_count) as executor:
         futures = [
             executor.submit(
-                fn=process_file,
+                process_file,
 
                 vk_api_client=vk_api_client,
                 file_path=file_path,

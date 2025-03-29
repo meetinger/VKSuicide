@@ -16,7 +16,8 @@ def main():
 
     language = get_args(num_of_args=1,
                         allowed_args=['ru', 'en'],
-                        start_msg=f"{get_string('choose_language', 'ru')}\n{get_string('choose_language', 'en')}:",
+                        start_msg=f"""{get_string('choose_language', 'ru')}
+{get_string('choose_language', 'en')}:""",
                         print_func=logger.info,
                         arg_type=str)[0]
 
@@ -78,7 +79,8 @@ def main():
 
     vk_api_client = VKApiClient(token)
 
-    service_interface = ServiceInterface(vk_api_client, archive_path, progress_callback_cli_factory)
+    service_interface = ServiceInterface(vk_api_client, archive_path,
+                                         progress_monitor_factory=progress_callback_cli_factory)
 
     class DeleteCategory(IntEnum):
         LIKES = 1
@@ -89,6 +91,8 @@ def main():
 
     for_deletion = get_args_inline(num_of_args=-1, allowed_args=[i.value for i in DeleteCategory],
                                start_msg=_get_s('select_for_deletion'), arg_type=int)
+
+    print(f"{for_deletion=}")
 
     if DeleteCategory.LIKES.value in for_deletion:
         service_interface.delete_likes()

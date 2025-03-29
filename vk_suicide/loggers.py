@@ -20,15 +20,15 @@ def get_logger(name: str = "logger"):
     console_handler.setLevel(level)
     console_handler.setFormatter(formatter_console)
 
-    # file_handler = logging.FileHandler(f"vk_suicide_{dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log",
-    #                                    mode="a", encoding="utf-8")
-    # file_handler.setFormatter(formatter)
+    file_handler = logging.FileHandler(f"vk_suicide_{dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log",
+                                       mode="a", encoding="utf-8")
+    file_handler.setFormatter(formatter)
 
     logging.getLogger().handlers.clear()
 
     if not logger.hasHandlers():
         logger.addHandler(console_handler)
-        # logger.addHandler(file_handler)
+        logger.addHandler(file_handler)
 
     logger.propagate = False
 

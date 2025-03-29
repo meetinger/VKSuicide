@@ -3,10 +3,11 @@ from pathlib import Path
 from typing import Generator
 
 from vk_suicide.services.common import ApiTaskData
+from vk_suicide.utils import AutoOpen
 
 
 def parse_photos_in_albums_from_file(file_path: str) -> Generator[ApiTaskData, None, None]:
-    with open(file_path, 'r') as f:
+    with AutoOpen(file_path) as f:
         text = f.read()
 
     photos_links = set(re.findall(r'https://vk.com/photo\d+_\d+', text))

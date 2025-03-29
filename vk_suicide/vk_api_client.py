@@ -49,7 +49,7 @@ class VKApiClient:
         return res.json()
 
     @staticmethod
-    @vk_limit_solver
+    # @vk_limit_solver
     def check_token(token: str):
         data = {'access_token': token, 'v': '5.131'}
 

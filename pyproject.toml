@@ -13,6 +13,7 @@ requests = "^2.32.3"
 tqdm = "^4.67.1"
 #vk-api = "^11.9.9"
 vk-api = "^11.9.9"
+charset-normalizer = "^3.4.1"
 
 
 [build-system]

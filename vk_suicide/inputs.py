@@ -81,7 +81,7 @@ def get_args_inline(num_of_args: int,
         tmp = input().strip().split()
         args = [arg_type(j) for j in tmp]
         is_first = False
-    return args[:num_of_args]
+    return args[:num_of_args] if num_of_args != -1 else args
 
 
 def get_args_line_by_line(num_of_args: int,

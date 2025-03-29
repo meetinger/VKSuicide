@@ -3,12 +3,13 @@ from pathlib import Path
 from typing import Generator
 
 from vk_suicide.services.common import ApiTaskData
+from vk_suicide.utils import AutoOpen
 
 
-def parse_comments_from_file(file_name: str) -> Generator:
+def parse_comments_from_file(file_path: str) -> Generator:
     link_regex = r'https://vk.com/[a-z]+[-0-9]+_[0-9]+\?\w+\=[-0-9]+\&*\w*\=*[-0-9]*'
 
-    with open(file_name, 'r') as f:
+    with AutoOpen(file_path) as f:
         text = f.read()
 
     for match_obj in re.finditer(link_regex, text):

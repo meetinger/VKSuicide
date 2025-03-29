@@ -14,7 +14,8 @@ from vk_suicide.vk_api_client import VKApiClient
 logger = get_logger(__name__)
 
 class ServiceInterface:
-    def __init__(self, vk_api_client: VKApiClient, extracted_archive_path: str | Path, progress_monitor_factory: Callable):
+    def __init__(self, vk_api_client: VKApiClient, extracted_archive_path: str | Path,
+                 progress_monitor_factory: Callable[[str], Callable[[int, int], None]]):
         self.vk_api_client = vk_api_client
         self.extracted_archive_path = extracted_archive_path
         self.progress_monitor_factory = progress_monitor_factory

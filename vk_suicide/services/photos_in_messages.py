@@ -4,11 +4,12 @@ from pathlib import Path
 from typing import Generator
 
 from vk_suicide.services.common import ApiTaskData
+from vk_suicide.utils import AutoOpen
 from vk_suicide.vk_api_client import VKApiClient
 
 
 def parse_photos_in_messages_from_file(file_path: str, vk_api_client: VKApiClient) -> Generator[ApiTaskData, None, None]:
-    with open(file_path, 'r') as f:
+    with AutoOpen(file_path) as f:
         text = f.read()
 
     matches_iterator = re.finditer(r'<div class="message".*?<div class="attachment">.*?</div>', text, re.DOTALL)

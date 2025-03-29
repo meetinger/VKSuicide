@@ -50,12 +50,12 @@ class VKApiClient:
 
     @staticmethod
     # @vk_limit_solver
-    def check_token(token: str):
+    def is_token_valid(token: str) -> bool:
         data = {'access_token': token, 'v': '5.131'}
 
         res = requests.post(url="https://api.vk.com/method/account.getAppPermissions", data=data)
 
-        return res.json()
+        return 'error' not in res.json()
 
     @property
     def user_id(self):

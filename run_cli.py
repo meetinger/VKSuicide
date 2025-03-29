@@ -66,21 +66,21 @@ def main():
     if 'oauth.vk.com' in token:
         token = token.split('access_token=')[-1].split('&expires_in=')[0]
 
-
-
-    while not VKApiClient.check_token(token):
-        logger.info(_get_s('invalid_token'))
-        token = get_args(num_of_args=1,
-                                 start_msg=_get_s('enter_token'),
-                                 arg_type=str, print_func=logger.info)[0]
-
-        if 'oauth.vk.com' in token:
-            token = token.split('access_token=')[-1].split('&expires_in=')[0]
+    #
+    # while not VKApiClient.is_token_valid(token):
+    #     logger.info(_get_s('invalid_token'))
+    #     token = get_args(num_of_args=1,
+    #                              start_msg=_get_s('enter_token'),
+    #                              arg_type=str, print_func=logger.info)[0]
+    #
+    #     if 'oauth.vk.com' in token:
+    #         token = token.split('access_token=')[-1].split('&expires_in=')[0]
 
     vk_api_client = VKApiClient(token)
 
     service_interface = ServiceInterface(vk_api_client, archive_path,
-                                         progress_monitor_factory=progress_callback_cli_factory)
+                                         progress_monitor_factory=progress_callback_cli_factory,
+                                         get_string=_get_s)
 
     class DeleteCategory(IntEnum):
         LIKES = 1
@@ -91,8 +91,6 @@ def main():
 
     for_deletion = get_args_inline(num_of_args=-1, allowed_args=[i.value for i in DeleteCategory],
                                start_msg=_get_s('select_for_deletion'), arg_type=int)
-
-    print(f"{for_deletion=}")
 
     if DeleteCategory.LIKES.value in for_deletion:
         service_interface.delete_likes()

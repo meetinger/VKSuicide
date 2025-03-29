@@ -1,4 +1,6 @@
 import functools
+import multiprocessing as mp
+
 from pathlib import Path
 from typing import Callable
 
@@ -14,11 +16,14 @@ from vk_suicide.vk_api_client import VKApiClient
 logger = get_logger(__name__)
 
 class ServiceInterface:
-    def __init__(self, vk_api_client: VKApiClient, extracted_archive_path: str | Path,
-                 progress_monitor_factory: Callable[[str], Callable[[int, int], None]]):
+    def __init__(self, vk_api_client: VKApiClient,
+                 extracted_archive_path: str | Path,
+                 progress_monitor_factory: Callable[[str], Callable[[list, mp.Value, mp.Event], None]],
+                 get_string: Callable[[str], str] = lambda x: x):
         self.vk_api_client = vk_api_client
         self.extracted_archive_path = extracted_archive_path
         self.progress_monitor_factory = progress_monitor_factory
+        self.get_string = get_string
 
     def delete_likes(self) -> None:
         likes_files = likes_files_iterator(self.extracted_archive_path)
@@ -29,7 +34,7 @@ class ServiceInterface:
             vk_api_client=self.vk_api_client,
             files_iterator=likes_files,
             file_parser=parse_likes_from_file,
-            progress_monitor=self.progress_monitor_factory('Deleting likes...')
+            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_likes'))
         )
 
         logger.info('Likes deleted')
@@ -43,7 +48,7 @@ class ServiceInterface:
             vk_api_client=self.vk_api_client,
             files_iterator=files_comments,
             file_parser=parse_comments_from_file,
-            progress_monitor=self.progress_monitor_factory('Deleting comments...')
+            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_comments'))
         )
 
         logger.info('Comments deleted')
@@ -58,7 +63,7 @@ class ServiceInterface:
             vk_api_client=self.vk_api_client,
             files_iterator=wall_posts_files,
             file_parser=parse_likes_from_file,
-            progress_monitor=self.progress_monitor_factory('Deleting wall posts...')
+            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_wall'))
         )
 
         logger.info('Wall posts deleted')
@@ -72,7 +77,7 @@ class ServiceInterface:
             vk_api_client=self.vk_api_client,
             files_iterator=photos_in_albums_files,
             file_parser=parse_likes_from_file,
-            progress_monitor=self.progress_monitor_factory('Deleting photos in albums...')
+            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_photos_in_albums'))
         )
 
         logger.info('Photos in albums deleted')
@@ -86,7 +91,7 @@ class ServiceInterface:
             vk_api_client=self.vk_api_client,
             files_iterator=photos_in_messages_files,
             file_parser=functools.partial(parse_photos_in_messages_from_file, vk_api_client=self.vk_api_client),
-            progress_monitor=self.progress_monitor_factory('Deleting photos in messages...')
+            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_photos_in_messages'))
         )
 
         logger.info('Photos in messages deleted')

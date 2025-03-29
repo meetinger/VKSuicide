@@ -56,7 +56,7 @@ else:
     print(get_string('dir_archive_not_detected', GlobalVars.language))
     sys.exit()
 
-access_token = get_args_inline(num_of_args=1, allowed_args=lambda token: VKApi.check_token(token).get('response', -1) > 0,
+access_token = get_args_inline(num_of_args=1, allowed_args=lambda token: VKApi.is_token_valid(token).get('response', -1) > 0,
                                start_msg=get_string('enter_token', GlobalVars.language), arg_type=str,
                                err_msg=get_string('invalid_token', GlobalVars.language))[0]
 

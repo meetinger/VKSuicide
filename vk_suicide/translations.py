@@ -39,18 +39,18 @@ translation_strings = {
     'invalid_token': {'ru': '''Недействительный токен''',
                       'en': '''Invalid token'''},
     'select_for_deletion': {'ru': '''Введите то, что нужно удалить в одной строке через пробел:\n
-    [1] Лайки
-    [2] Комментарии
-    [3] Стена
-    [4] Фотографии в сообщениях(Медленно)
-    [5] Фотографии в альбомах
+[1] Лайки
+[2] Комментарии
+[3] Стена
+[4] Фотографии в сообщениях(Медленно)
+[5] Фотографии в альбомах
     ''',
                             'en': '''Enter what you want to delete in one line separated by a space:\n
-    [1] Likes
-    [2] Comments
-    [3] Wall
-    [4] Photos in messages(Slow)
-    [5] Photos in albums
+[1] Likes
+[2] Comments
+[3] Wall
+[4] Photos in messages(Slow)
+[5] Photos in albums
                             '''},
     'error': {
         'ru': 'Ошибка',
@@ -91,6 +91,10 @@ translation_strings = {
     'deleting_photos_in_messages': {
         'ru': '''Удаление фотографий в сообщениях''',
         'en': '''Deleting photos in messages'''
+    },
+    'deleting_photos_in_albums': {
+        'ru': '''Удаление фотографий в альбомах''',
+        'en': '''Deleting photos in albums'''
     },
     'archive_likes_parsing': {
         'ru': '''Обработка архива лайков...''',

@@ -1,6 +1,5 @@
 import multiprocessing as mp
 import os
-import queue
 import threading
 import time
 
@@ -21,21 +20,21 @@ class ApiTaskData(TypedDict):
     params: dict
 
 
-def progress_monitor_factory(progress_callback: Callable[[int, int], None]) -> Callable[[Queue, Any, Any], None]:
-
-    def _process_monitor(progress_queue: mp.Queue, total_work_count: mp.Value, done_event: mp.Event) -> None:
-        processed = 0
-        while True:
-            try:
-                progress_queue.get(timeout=0.1)
-                processed += 1
-                progress_callback(processed, total_work_count.value)
-            except queue.Empty:
-                if done_event.is_set() and progress_queue.empty():
-                    break
-                time.sleep(0.1)
-
-    return _process_monitor
+# def progress_monitor_factory(progress_callback: Callable[[int, int], None]) -> Callable[[Queue, Any, Any], None]:
+#
+#     def _process_monitor(progress_queue: mp.Queue, total_work_count: mp.Value, done_event: mp.Event) -> None:
+#         processed = 0
+#         while True:
+#             try:
+#                 progress_queue.get(timeout=0.1)
+#                 processed += 1
+#                 progress_callback(processed, total_work_count.value)
+#             except queue.Empty:
+#                 if done_event.is_set() and progress_queue.empty():
+#                     break
+#                 time.sleep(0.1)
+#
+#     return _process_monitor
 
 
 def process_file(
@@ -44,7 +43,7 @@ def process_file(
         file_parser: Callable[[str], Generator],
         total_work_count: mp.Value,
         total_lock: mp.Lock,
-        progress_queue: mp.Queue) -> None:
+        progress_list: list) -> None:
 
     tasks = list(file_parser(file_path))
 
@@ -52,12 +51,12 @@ def process_file(
         total_work_count.value += len(tasks)
 
     def execute_task(task: ApiTaskData) -> None:
-        logger.info(f'Processing: {task["link"]}')
+        logger.debug(f'Processing: {task["link"]}')
         try:
             vk_api_client.execute_method(task['method'], task['params'])
         except Exception as e:
             logger.error(f'Error processing {task["link"]}: {e}\nData: {task}')
-        progress_queue.put(1)
+        progress_list.append(1)
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         list(executor.map(execute_task, tasks))
@@ -66,17 +65,17 @@ def process_file(
 def delete_category(vk_api_client: Any,
                     files_iterator: Generator,
                     file_parser: Callable[[str], Generator],
-                    progress_monitor: Callable[[mp.Queue, mp.Value, mp.Event], None]) -> None:
+                    progress_monitor: Callable[[list, mp.Value, mp.Event], None]) -> None:
 
     manager = mp.Manager()
-    progress_queue = manager.Queue()
+    progress_list = manager.list()
     total_work_count = manager.Value('i', 0)
     total_lock = manager.Lock()
     done_event = manager.Event()
 
     monitor_thread = threading.Thread(
         target=progress_monitor,
-        args=(progress_queue,
+        args=(progress_list,
               total_work_count,
               done_event)
     )
@@ -95,7 +94,7 @@ def delete_category(vk_api_client: Any,
                 file_parser=file_parser,
                 total_work_count=total_work_count,
                 total_lock=total_lock,
-                progress_queue=progress_queue
+                progress_list=progress_list
             )
             for file_path in files
         ]
@@ -105,20 +104,23 @@ def delete_category(vk_api_client: Any,
     done_event.set()
     monitor_thread.join()
 
-def progress_callback_cli_factory(description: str) -> Callable[[int, int], None]:
+def progress_callback_cli_factory(description: str) -> Callable[[list, Any, Any], None]:
     pbar = None
 
-    def _progress_callback_cli(processed: int, total: int) -> None:
+    def _progress_callback_cli(progress_list: list, total: mp.Value, done_event: mp.Event) -> None:
         nonlocal pbar
 
-        if pbar is None:
-            pbar = tqdm(total=total, desc=description)
+        while not done_event.is_set():
+            processed = len(progress_list)
+            if pbar is None:
+                pbar = tqdm(total=total.value, desc=description, dynamic_ncols=True, leave=True)
 
-        pbar.n = processed
-        pbar.refresh()
+            pbar.n = processed
+            pbar.refresh()
 
-        if processed >= total:
-            pbar.close()
-            pbar = None
+            time.sleep(0.05)
+
+        pbar.close()
+        pbar = None
 
     return _progress_callback_cli

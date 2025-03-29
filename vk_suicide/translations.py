@@ -34,8 +34,8 @@ translation_strings = {
         'ru': '''Введите код 2FA''',
         'en': '''Enter 2FA code'''
     },
-    'enter_token': {'ru': '''Введите токен, токен можно взять здесь: https://vkhost.github.io/ \nВ настройках выделите все пункты''',
-                     'en': '''Enter access token, you can get token here: https://vkhost.github.io/ \nIn settings select all positions'''},
+    'enter_token': {'ru': '''Введите токен(или ссылку с токеном).\nP.S: токен можно взять здесь: https://vkhost.github.io/ На странице выберите vk.com и предоставьте доступ''',
+                     'en': '''Enter access token(or link with token).\nP.S: you can get token here: https://vkhost.github.io/ On the page select vk.com'''},
     'invalid_token': {'ru': '''Недействительный токен''',
                       'en': '''Invalid token'''},
     'select_for_deletion': {'ru': '''Введите то, что нужно удалить в одной строке через пробел:\n

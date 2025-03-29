@@ -48,7 +48,7 @@ def get_args(num_of_args: int,
 
 
 def get_args_inline(num_of_args: int,
-                    allowed_args: list | Callable,
+                    allowed_args: list | Callable = lambda *args, **kwargs: True,
                     start_msg: str = "Enter value:",
                     err_msg: str = "Invalid value!",
                     args_msgs: list = None,
@@ -85,7 +85,7 @@ def get_args_inline(num_of_args: int,
 
 
 def get_args_line_by_line(num_of_args: int,
-                          allowed_args: list | Callable,
+                          allowed_args: list | Callable = lambda *args, **kwargs: True,
                           start_msg: str = "Enter value:",
                           err_msg: str = "Invalid value!",
                           args_msgs=None,

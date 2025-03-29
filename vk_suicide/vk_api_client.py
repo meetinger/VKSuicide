@@ -27,3 +27,6 @@ class VKApiClient:
             res = self.execute_method('users.get', {'fields': 'id'})
             self._user_id = res['response'][0]['id']
         return self._user_id
+
+    def __str__(self):
+        return f"VKApiClient(user_id={self.user_id})"

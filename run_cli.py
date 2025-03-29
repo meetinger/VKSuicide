@@ -1,9 +1,12 @@
 import os
 import zipfile
+from enum import IntEnum
 
 from project_root import PROJECT_ROOT
-from vk_suicide.inputs import get_args
+from vk_suicide.inputs import get_args, get_args_inline
 from vk_suicide.loggers import get_logger
+from vk_suicide.services.common import progress_callback_cli_factory
+from vk_suicide.services.interface import ServiceInterface
 from vk_suicide.translations import get_string
 from vk_suicide.vk_api_client import VKApiClient
 
@@ -64,8 +67,50 @@ def main():
         logger.info(_get_s('dir_archive_not_detected'))
 
     token = get_args(num_of_args=1,
+                     start_msg=_get_s('enter_token'),
+                     arg_type=str, print_func=logger.info)[0]
+    if 'oauth.vk.com' in token:
+        token = token.split('access_token=')[-1].split('&expires_in=')[0]
+
+
+
+    while not VKApiClient.check_token(token):
+        logger.info(_get_s('invalid_token'))
+        token = get_args(num_of_args=1,
                                  start_msg=_get_s('enter_token'),
                                  arg_type=str, print_func=logger.info)[0]
+
+        if 'oauth.vk.com' in token:
+            token = token.split('access_token=')[-1].split('&expires_in=')[0]
+
+    vk_api_client = VKApiClient(token)
+
+    service_interface = ServiceInterface(vk_api_client, archive_path, progress_callback_cli_factory)
+
+    class DeleteCategory(IntEnum):
+        LIKES = 1
+        COMMENTS = 2
+        WALL = 3
+        PHOTOS_IN_MESSAGES = 4
+        PHOTOS_IN_ALBUMS = 5
+
+    for_deletion = get_args_inline(num_of_args=-1, allowed_args=[i.value for i in DeleteCategory],
+                               start_msg=_get_s('select_for_deletion'), arg_type=int)
+
+    if DeleteCategory.LIKES.value in for_deletion:
+        service_interface.delete_likes()
+
+    if DeleteCategory.COMMENTS.value in for_deletion:
+        service_interface.delete_comments()
+
+    if DeleteCategory.WALL.value in for_deletion:
+        service_interface.delete_wall()
+
+    if DeleteCategory.PHOTOS_IN_MESSAGES.value in for_deletion:
+        service_interface.delete_photos_in_messages()
+
+    if DeleteCategory.PHOTOS_IN_ALBUMS.value in for_deletion:
+        service_interface.delete_photos_in_albums()
 
 
 

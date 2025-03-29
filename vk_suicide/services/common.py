@@ -20,23 +20,6 @@ class ApiTaskData(TypedDict):
     params: dict
 
 
-# def progress_monitor_factory(progress_callback: Callable[[int, int], None]) -> Callable[[Queue, Any, Any], None]:
-#
-#     def _process_monitor(progress_queue: mp.Queue, total_work_count: mp.Value, done_event: mp.Event) -> None:
-#         processed = 0
-#         while True:
-#             try:
-#                 progress_queue.get(timeout=0.1)
-#                 processed += 1
-#                 progress_callback(processed, total_work_count.value)
-#             except queue.Empty:
-#                 if done_event.is_set() and progress_queue.empty():
-#                     break
-#                 time.sleep(0.1)
-#
-#     return _process_monitor
-
-
 def process_file(
         vk_api_client: VKApiClient,
         file_path: str,
@@ -104,7 +87,7 @@ def delete_category(vk_api_client: Any,
     done_event.set()
     monitor_thread.join()
 
-def progress_callback_cli_factory(description: str) -> Callable[[list, Any, Any], None]:
+def progress_monitor_cli_factory(description: str) -> Callable[[list, Any, Any], None]:
     pbar = None
 
     def _progress_callback_cli(progress_list: list, total: mp.Value, done_event: mp.Event) -> None:
@@ -115,9 +98,8 @@ def progress_callback_cli_factory(description: str) -> Callable[[list, Any, Any]
             if pbar is None:
                 pbar = tqdm(total=total.value, desc=description, dynamic_ncols=True, leave=True)
 
-            pbar.n = processed
-            pbar.refresh()
-
+            pbar.total = total.value
+            pbar.update(processed - pbar.n)
             time.sleep(0.05)
 
         pbar.close()

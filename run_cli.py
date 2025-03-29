@@ -5,7 +5,7 @@ from enum import IntEnum
 from project_root import PROJECT_ROOT
 from vk_suicide.inputs import get_args, get_args_inline
 from vk_suicide.loggers import get_logger
-from vk_suicide.services.common import progress_callback_cli_factory
+from vk_suicide.services.common import progress_monitor_cli_factory
 from vk_suicide.services.interface import ServiceInterface
 from vk_suicide.translations import get_string
 from vk_suicide.vk_api_client import VKApiClient, CAPTCHA_SOLVER
@@ -79,7 +79,7 @@ def main():
     vk_api_client = VKApiClient(token)
 
     service_interface = ServiceInterface(vk_api_client, archive_path,
-                                         progress_monitor_factory=progress_callback_cli_factory,
+                                         progress_monitor_factory=progress_monitor_cli_factory,
                                          get_string=_get_s)
 
     class DeleteCategory(IntEnum):

@@ -1,52 +1,64 @@
 import functools
 import random
 import time
+import multiprocessing as mp
 
 import requests
+import vk_captchasolver as vk_solver
 
 CAPTCHA_SOLVER = True
 try:
-    import vk_captchasolver as vk_solver
     CAPTCHA_SOLVER = True
 except ImportError as e:
+    print(e)
     vk_solver = None
     CAPTCHA_SOLVER = False
 
-def vk_limit_solver(func):
+class VKApiClient:
+    def __init__(self, token: str, shared_data: dict = None):
+        self._token = token
+        self._user_id = None
+        self.shared_data = shared_data or {}
 
-    @functools.wraps(func)
-    def wrapper(method: str, params: dict, *args, **kwargs):
-        res = func(method, params, *args, **kwargs)
-        err_code = res.get('error', {'error_code': 0}).get('error_code', 0)
+    def _wait_if_needed(self):
+        now = time.time()
+        if now < self.wait_until:
+            delay = self.wait_until - now
+            time.sleep(delay)
 
-        while err_code in (14, 9):
+    def _set_delay(self, seconds: int):
+        self.wait_until = time.time() + seconds
+
+    def _execute_method(self, method: str, params: dict):
+        self._wait_if_needed()
+
+        data = {'access_token': self._token, 'v': '5.131', **params, **self.captcha_params}
+        res = requests.post(url=f"https://api.vk.com/method/{method}", data=data).json()
+
+        return res
+
+    def execute_method(self, method: str, params: dict):
+        res = self._execute_method(method, params)
+        err_code = res.get('error', {}).get('error_code', 0)
+        print('First Result: ', res)
+
+        while err_code in (14, 9, 6):
             if err_code == 14 and CAPTCHA_SOLVER:
                 captcha_sid = res['error']['captcha_sid']
                 captcha_key = vk_solver.solve(sid=captcha_sid, s=1)
+                self.captcha_params = {'captcha_sid': captcha_sid, 'captcha_key': captcha_key}
+                print(f'captcha_sid: {captcha_sid}, captcha_key: {captcha_key}')
+                res = self._execute_method(method, params)
+                err_code = res.get('error', {}).get('error_code', 0)
+            else:
+                print('Error: ', res)
+                print('Waiting...')
+                self._set_delay(3)
+                res = self._execute_method(method, params)
+                err_code = res.get('error', {}).get('error_code', 0)
 
-                params.update({'captcha_sid': captcha_sid, 'captcha_key': captcha_key})
-
-                res = func(method, params, *args, **kwargs)
-                err_code = res.get('error', {'error_code': 0}).get('error_code', 0)
-            elif err_code == 9 or err_code == 14 and not CAPTCHA_SOLVER:
-                time.sleep(random.randint(1,5))
-                res = func(method, params, *args, **kwargs)
-                err_code = res.get('error', {'error_code': 0}).get('error_code', 0)
-
-    return wrapper
-
-class VKApiClient:
-    def __init__(self, token: str):
-        self._token = token
-        self._user_id = None
-
-    @vk_limit_solver
-    def execute_method(self, method: str, params: dict):
-        data = {'access_token': self._token, 'v': '5.131', **params}
-
-        res = requests.post(url=f"https://api.vk.com/method/{method}", data=data)
-
-        return res.json()
+        print(f'{self.captcha_params=}')
+        return res
 
     @staticmethod
     # @vk_limit_solver
@@ -63,6 +75,22 @@ class VKApiClient:
             res = self.execute_method('users.get', {'fields': 'id'})
             self._user_id = res['response'][0]['id']
         return self._user_id
+
+    @property
+    def captcha_params(self):
+        return self.shared_data.get('captcha_params', {})
+
+    @captcha_params.setter
+    def captcha_params(self, value):
+        self.shared_data['captcha_params'] = value
+
+    @property
+    def wait_until(self):
+        return self.shared_data.get('wait_until', 0)
+
+    @wait_until.setter
+    def wait_until(self, value):
+        self.shared_data['wait_until'] = value
 
     def __str__(self):
         return f"VKApiClient(user_id={self.user_id})"

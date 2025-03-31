@@ -1,10 +1,10 @@
 import multiprocessing as mp
 import os
+import pprint
 import threading
 import time
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from multiprocessing import Queue
 from typing import Generator, Callable, Any, TypedDict
 
 from tqdm import tqdm
@@ -35,10 +35,14 @@ def process_file(
 
     def execute_task(task: ApiTaskData) -> None:
         logger.debug(f'Processing: {task["link"]}')
+        # result = vk_api_client.execute_method(task['method'], task['params'])
         try:
-            vk_api_client.execute_method(task['method'], task['params'])
+            result = vk_api_client.execute_method(task['method'], task['params'])
+            # logger.debug(f'Response: {result}')
         except Exception as e:
-            logger.error(f'Error processing {task["link"]}: {e}\nData: {task}')
+            # logger.error(f'Error processing {task["link"]}: {e}\nData: {task}')
+            print('Exception: ', e)
+            print('Task:', pprint.pformat(task))
         progress_list.append(1)
 
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -51,10 +55,15 @@ def delete_category(vk_api_client: Any,
                     progress_monitor: Callable[[list, mp.Value, mp.Event], None]) -> None:
 
     manager = mp.Manager()
+
     progress_list = manager.list()
     total_work_count = manager.Value('i', 0)
     total_lock = manager.Lock()
     done_event = manager.Event()
+    vk_shared_data = manager.dict()
+    vk_shared_data.update(vk_api_client.shared_data)
+
+    vk_api_client.shared_data = vk_shared_data
 
     monitor_thread = threading.Thread(
         target=progress_monitor,
@@ -104,7 +113,7 @@ def progress_monitor_cli_factory(description: str) -> Callable[[list, Any, Any],
 
             pbar.total = total.value
             pbar.update(processed - pbar.n)
-            time.sleep(0.05)
+            time.sleep(0.1)
 
         pbar.close()
         pbar = None

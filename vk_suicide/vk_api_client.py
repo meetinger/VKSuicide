@@ -1,24 +1,41 @@
-import functools
-import random
 import time
-import multiprocessing as mp
-
 import requests
+from collections import deque
+
 import vk_captchasolver as vk_solver
+
+from vk_suicide.loggers import get_logger
 
 CAPTCHA_SOLVER = True
 try:
     CAPTCHA_SOLVER = True
 except ImportError as e:
-    print(e)
     vk_solver = None
     CAPTCHA_SOLVER = False
 
+logger = get_logger(__name__)
+
 class VKApiClient:
-    def __init__(self, token: str, shared_data: dict = None):
+    def __init__(self, token: str, shared_data: dict = None, rate_limit: int = 3):
         self._token = token
         self._user_id = None
         self.shared_data = shared_data or {}
+        self.rate_limit = rate_limit
+        self.time_window = 1
+        self.request_timestamps = deque()
+
+    def _rate_limit_check(self):
+        now = time.time()
+        while self.request_timestamps and now - self.request_timestamps[0] > self.time_window:
+            self.request_timestamps.popleft()
+
+        if len(self.request_timestamps) >= self.rate_limit:
+            sleep_time = self.time_window - (now - self.request_timestamps[0])
+            logger.debug(f"Rate limit hit. Sleeping for {sleep_time:.2f} seconds...")
+            time.sleep(sleep_time)
+            self.request_timestamps.popleft()
+
+        self.request_timestamps.append(time.time())
 
     def _wait_if_needed(self):
         now = time.time()
@@ -31,8 +48,10 @@ class VKApiClient:
 
     def _execute_method(self, method: str, params: dict):
         self._wait_if_needed()
+        self._rate_limit_check()
 
         data = {'access_token': self._token, 'v': '5.131', **params, **self.captcha_params}
+
         res = requests.post(url=f"https://api.vk.com/method/{method}", data=data).json()
 
         return res
@@ -40,33 +59,25 @@ class VKApiClient:
     def execute_method(self, method: str, params: dict):
         res = self._execute_method(method, params)
         err_code = res.get('error', {}).get('error_code', 0)
-        print('First Result: ', res)
 
         while err_code in (14, 9, 6):
             if err_code == 14 and CAPTCHA_SOLVER:
                 captcha_sid = res['error']['captcha_sid']
                 captcha_key = vk_solver.solve(sid=captcha_sid, s=1)
                 self.captcha_params = {'captcha_sid': captcha_sid, 'captcha_key': captcha_key}
-                print(f'captcha_sid: {captcha_sid}, captcha_key: {captcha_key}')
                 res = self._execute_method(method, params)
                 err_code = res.get('error', {}).get('error_code', 0)
             else:
-                print('Error: ', res)
-                print('Waiting...')
-                self._set_delay(3)
+                self._set_delay(1)
                 res = self._execute_method(method, params)
                 err_code = res.get('error', {}).get('error_code', 0)
 
-        print(f'{self.captcha_params=}')
         return res
 
     @staticmethod
-    # @vk_limit_solver
     def is_token_valid(token: str) -> bool:
         data = {'access_token': token, 'v': '5.131'}
-
         res = requests.post(url="https://api.vk.com/method/account.getAppPermissions", data=data)
-
         return 'error' not in res.json()
 
     @property
@@ -86,11 +97,19 @@ class VKApiClient:
 
     @property
     def wait_until(self):
-        return self.shared_data.get('wait_until', 0)
+        return self.shared_data.get('wait_until', time.time())
 
     @wait_until.setter
     def wait_until(self, value):
         self.shared_data['wait_until'] = value
+
+    @property
+    def request_timestamps(self):
+        return self.shared_data.get('request_timestamps')
+
+    @request_timestamps.setter
+    def request_timestamps(self, value):
+        self.shared_data['request_timestamps'] = value
 
     def __str__(self):
         return f"VKApiClient(user_id={self.user_id})"

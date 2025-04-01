@@ -33,21 +33,20 @@ def process_file(
     with total_lock:
         total_work_count.value += len(tasks)
 
-    def execute_task(task: ApiTaskData) -> None:
+    def _execute_task(task: ApiTaskData) -> None:
         logger.debug(f'Processing: {task["link"]}')
         # result = vk_api_client.execute_method(task['method'], task['params'])
         try:
             result = vk_api_client.execute_method(task['method'], task['params'])
-            # logger.debug(f'Response: {result}')
+            logger.debug(f'Response: {result}')
+            if result.get('error'):
+                logger.error(f'Error processing {task["link"]}: {result["error"]}')
         except Exception as e:
-            # logger.error(f'Error processing {task["link"]}: {e}\nData: {task}')
-            print('Exception: ', e)
-            print('Task:', pprint.pformat(task))
+            logger.error(f'Error processing {task["link"]}: {e}\nData: {task}')
         progress_list.append(1)
 
     with ThreadPoolExecutor(max_workers=10) as executor:
-        list(executor.map(execute_task, tasks))
-
+        list(executor.map(_execute_task, tasks))
 
 def delete_category(vk_api_client: Any,
                     files_iterator: Generator,
@@ -58,12 +57,14 @@ def delete_category(vk_api_client: Any,
 
     progress_list = manager.list()
     total_work_count = manager.Value('i', 0)
+    requests_lock = manager.Lock()
     total_lock = manager.Lock()
     done_event = manager.Event()
     vk_shared_data = manager.dict()
     vk_shared_data.update(vk_api_client.shared_data)
 
     vk_api_client.shared_data = vk_shared_data
+    vk_api_client.lock = requests_lock
 
     monitor_thread = threading.Thread(
         target=progress_monitor,

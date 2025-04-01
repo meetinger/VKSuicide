@@ -28,9 +28,9 @@ def parse_likes_from_file(file_path: str | Path) -> Generator[ApiTaskData, None,
     regex = re.compile(regex)
 
     with AutoOpen(file_path) as f:
-        text = f.read()*10 # TODO: remove it, it's for debug
+        text = f.read()
 
-    for match_obj in regex.finditer(text):
+    for match_obj in set(regex.finditer(text)):
         match = match_obj.group(0)
         owner_match = re.search(r'-?\d+', match)
         if not owner_match:

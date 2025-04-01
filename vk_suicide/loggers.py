@@ -10,6 +10,10 @@ class TqdmLoggingHandler(logging.Handler):
 def get_logger(name: str = "logger"):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+
+    if logger.hasHandlers():
+        logger.handlers.clear()
 
     formatter = logging.Formatter(
         "%(asctime)s - [%(levelname)s] - %(name)s - %(module)s:%(lineno)d - %(message)s"
@@ -29,11 +33,7 @@ def get_logger(name: str = "logger"):
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
 
-    logging.getLogger().handlers.clear()
-    if not logger.hasHandlers():
-        logger.addHandler(console_handler)
-        logger.addHandler(file_handler)
-
-    logger.propagate = False
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
 
     return logger

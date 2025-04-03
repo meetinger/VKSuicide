@@ -4,16 +4,12 @@ from collections import deque
 
 import vk_captchasolver as vk_solver
 
-from vk_suicide.loggers import get_logger
-
 CAPTCHA_SOLVER = True
 try:
     CAPTCHA_SOLVER = True
 except ImportError as e:
     vk_solver = None
     CAPTCHA_SOLVER = False
-
-logger = get_logger(__name__)
 
 class VKApiClient:
     def __init__(self, token: str, shared_data: dict = None, rate_limit: int = 3):
@@ -28,14 +24,13 @@ class VKApiClient:
         now = time.time()
         while self.request_timestamps and now - self.request_timestamps[0] > self.time_window:
             self.request_timestamps.popleft()
-
         if len(self.request_timestamps) >= self.rate_limit:
             sleep_time = self.time_window - (now - self.request_timestamps[0])
-            logger.debug(f"Rate limit hit. Sleeping for {sleep_time:.2f} seconds...")
             time.sleep(sleep_time)
             self.request_timestamps.popleft()
 
         self.request_timestamps.append(time.time())
+        print(self.request_timestamps)
 
     def _wait_if_needed(self):
         now = time.time()
@@ -53,7 +48,7 @@ class VKApiClient:
         data = {'access_token': self._token, 'v': '5.131', **params, **self.captcha_params}
 
         res = requests.post(url=f"https://api.vk.com/method/{method}", data=data).json()
-
+        print('res:', res)
         return res
 
     def execute_method(self, method: str, params: dict):

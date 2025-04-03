@@ -25,17 +25,18 @@ def process_file(
         total_work_count: mp.Value,
         total_lock: mp.Lock,
         progress_list: list,
+        idx: int
 ) -> None:
-    logger = get_logger(f"worker-{file_path}")
+    logger = get_logger(f"worker-{idx}")
     tasks = list(file_parser(file_path))
 
     with total_lock:
         total_work_count.value += len(tasks)
 
     def _execute_task(task: ApiTaskData) -> None:
-        # logger.debug(f'Processing: {task["link"]}')
+        logger.debug(f'Processing: {task["link"]}')
         try:
-            # logger.debug(f'Params: {task["params"]}')
+            logger.debug(f'Params: {task["params"]}')
             result = vk_api_client.execute_method(task['method'], task['params'])
             logger.debug(f'Response: {result}')
             if result.get('error'):
@@ -101,9 +102,10 @@ def delete_category(
                 file_parser,
                 total_work_count,
                 total_lock,
-                progress_list
+                progress_list,
+                idx
             )
-            for file_path in files
+            for idx, file_path in enumerate(files)
         ]
         for future in futures:
             future.result()

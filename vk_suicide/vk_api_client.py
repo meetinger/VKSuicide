@@ -81,10 +81,13 @@ class VKApiClient:
                 res = self._execute_method(method, params)
                 self.request_lock.release()
             else:
-                self._set_delay(1)
+                self._set_delay(10)
                 res = self._execute_method(method, params)
 
             err_code = res.get('error', {}).get('error_code', 0)
+
+        if 'error' in res:
+            raise Exception(res['error'])
 
         return res
 

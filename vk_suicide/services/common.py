@@ -24,19 +24,18 @@ def process_file(
         file_parser: Callable[[str], Generator],
         total_work_count: mp.Value,
         total_lock: mp.Lock,
-        progress_list: list
+        progress_list: list,
 ) -> None:
     logger = get_logger(f"worker-{file_path}")
-
     tasks = list(file_parser(file_path))
 
     with total_lock:
         total_work_count.value += len(tasks)
 
     def _execute_task(task: ApiTaskData) -> None:
-        logger.debug(f'Processing: {task["link"]}')
+        # logger.debug(f'Processing: {task["link"]}')
         try:
-            logger.debug(f'Params: {task["params"]}')
+            # logger.debug(f'Params: {task["params"]}')
             result = vk_api_client.execute_method(task['method'], task['params'])
             logger.debug(f'Response: {result}')
             if result.get('error'):
@@ -49,30 +48,40 @@ def process_file(
         list(executor.map(_execute_task, tasks))
 
 
-def delete_category(vk_api_client: Any,
-                    files_iterator: Generator,
-                    file_parser: Callable[[str], Generator],
-                    progress_monitor: Callable[[list, mp.Value, mp.Event], None],
-                    log_queue: mp.Queue) -> None:
-
+def delete_category(
+    vk_api_client: VKApiClient,
+    files_iterator: Generator,
+    file_parser: Callable[[str], Generator],
+    progress_monitor: Callable[[list, mp.Value, mp.Event], None],
+    log_queue: mp.Queue
+) -> None:
     manager = mp.Manager()
+
+    request_lock = manager.Lock()
+
+    request_timestamps = manager.list()
+    request_timestamps.extend(vk_api_client.request_timestamps or [])
+
+    captcha_params = manager.dict()
+    captcha_params.update(vk_api_client.captcha_params or {})
+
+    wait_until = manager.Value('d', vk_api_client.wait_until.value if vk_api_client.wait_until else None or time.time())
+
+    vk_api_client.set_shared_state(
+        lock=request_lock,
+        timestamps=request_timestamps,
+        captcha_params=captcha_params,
+        wait_until=wait_until
+    )
 
     progress_list = manager.list()
     total_work_count = manager.Value('i', 0)
-    requests_lock = manager.Lock()
     total_lock = manager.Lock()
     done_event = manager.Event()
-    vk_shared_data = manager.dict()
-    vk_shared_data.update(vk_api_client.shared_data)
-
-    vk_api_client.shared_data = vk_shared_data
-    vk_api_client.lock = requests_lock
 
     monitor_thread = threading.Thread(
         target=progress_monitor,
-        args=(progress_list,
-              total_work_count,
-              done_event)
+        args=(progress_list, total_work_count, done_event)
     )
     monitor_thread.start()
 

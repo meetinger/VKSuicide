@@ -34,7 +34,7 @@ def _create_handlers():
         "%(asctime)s - [%(levelname)s] - %(name)s - %(module)s:%(lineno)d - %(message)s"
     )
     formatter_console = logging.Formatter(
-        "[%(levelname)s] - %(message)s"
+        "[%(levelname)s] [%(name)s] - %(message)s"
     )
 
     file_handler = logging.FileHandler(

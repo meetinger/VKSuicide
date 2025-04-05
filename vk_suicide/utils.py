@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from charset_normalizer import from_path
 
 class AutoOpen:
@@ -16,3 +18,11 @@ class AutoOpen:
     def __exit__(self, exc_type, exc_value, traceback):
         if self.file:
             self.file.close()
+
+def remove_duplicates(lst: Iterable) -> list:
+    """Remove duplicates from list(support unhashable types)"""
+    result = []
+    for item in lst:
+        if item not in result:
+            result.append(item)
+    return result

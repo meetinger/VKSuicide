@@ -8,6 +8,7 @@ from typing import Generator, Callable, Any, TypedDict
 
 from tqdm import tqdm
 
+from vk_suicide.utils import remove_duplicates
 from vk_suicide.vk_api_client import VKApiClient
 from vk_suicide.loggers import get_logger, worker_init
 
@@ -28,7 +29,10 @@ def process_file(
         idx: int
 ) -> None:
     logger = get_logger(f"worker-{idx}")
+    # tasks = remove_duplicates(file_parser(file_path))
     tasks = list(file_parser(file_path))
+
+    vk_api_client.logger = get_logger(f'vk_api_client-{idx}')
 
     with total_lock:
         total_work_count.value += len(tasks)
@@ -37,15 +41,15 @@ def process_file(
         logger.debug(f'Processing: {task["link"]}')
         try:
             logger.debug(f'Params: {task["params"]}')
-            result = vk_api_client.execute_method(task['method'], task['params'])
+            result = vk_api_client.execute_method(task['method'], task['params'], max_retries=5)
             logger.debug(f'Response: {result}')
             if result.get('error'):
                 logger.error(f'Error processing {task["link"]}: {result["error"]}')
         except Exception as e:
-            logger.error(f'Error processing {task["link"]}: {e}\nData: {task}')
+            logger.error(f'Exception while processing {task["link"]}: {e}\nData: {task}')
         progress_list.append(1)
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=1) as executor:
         list(executor.map(_execute_task, tasks))
 
 
@@ -58,7 +62,8 @@ def delete_category(
 ) -> None:
     manager = mp.Manager()
 
-    request_lock = manager.Lock()
+    rate_limit_lock = manager.Lock()
+    captcha_lock = manager.Lock()
 
     request_timestamps = manager.list()
     request_timestamps.extend(vk_api_client.request_timestamps or [])
@@ -69,10 +74,11 @@ def delete_category(
     wait_until = manager.Value('d', vk_api_client.wait_until.value if vk_api_client.wait_until else None or time.time())
 
     vk_api_client.set_shared_state(
-        lock=request_lock,
+        rate_limit_lock=rate_limit_lock,
+        captcha_lock=captcha_lock,
         timestamps=request_timestamps,
         captcha_params=captcha_params,
-        wait_until=wait_until
+        wait_until=wait_until,
     )
 
     progress_list = manager.list()

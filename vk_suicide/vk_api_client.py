@@ -70,6 +70,7 @@ class VKApiClient:
 
     def execute_method(self, method: str, params: dict, max_retries: int = 5):
         attempts = 0
+
         while True:
             attempts += 1
             res = self._execute_method(method, params)
@@ -101,7 +102,16 @@ class VKApiClient:
                     self.logger.info(f'RES: {res}')
 
                     captcha_solver = VkCaptchaSolver()
-                    captcha_key, accuracy = captcha_solver.solve(captcha_img_url, minimum_accuracy=0.9, repeat_count=5)
+                    captcha_key, accuracy = captcha_solver.solve(
+                        captcha_img_url,
+                        minimum_accuracy=0.7,
+                        repeat_count=5
+                    )
+
+                    if accuracy < 0.8:
+                        self.logger.warning(f"Captcha accuracy too low ({accuracy:.3f}), skipping attempt")
+                        self._set_delay(5)
+                        continue
 
                     self.captcha_params['captcha_sid'] = captcha_sid
                     self.captcha_params['captcha_key'] = captcha_key
@@ -110,7 +120,7 @@ class VKApiClient:
                                      f"captcha_img_url={captcha_img_url}\n"
                                      f"captcha_sid={captcha_sid}\n"
                                      f"captcha_key={captcha_key}\n"
-                                     f"accuracy={accuracy}")
+                                     f"accuracy={accuracy:.3f}")
                     continue
 
             else:

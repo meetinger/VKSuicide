@@ -6,7 +6,7 @@ from typing import Callable
 
 from vk_suicide.loggers import get_logger, get_worker_logger
 from vk_suicide.services.comments import comments_files_iterator, parse_comments_from_file
-from vk_suicide.services.common import delete_category
+from vk_suicide.services.common import delete_category_sync
 from vk_suicide.services.likes import likes_files_iterator, parse_likes_from_file
 from vk_suicide.services.photos_in_albums import photos_in_albums_files_iterator
 from vk_suicide.services.photos_in_messages import parse_photos_in_messages_from_file
@@ -32,12 +32,11 @@ class ServiceInterface:
         if likes_files is None:
             return self.logger.warning(self.get_string('likes_files_not_found'))
 
-        delete_category(
+        delete_category_sync(
             vk_api_client=self.vk_api_client,
             files_iterator=likes_files,
             file_parser=parse_likes_from_file,
-            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_likes')),
-            log_queue=self.log_queue
+            description=self.get_string('deleting_likes'),
         )
 
         self.logger.info(self.get_string('likes_deleted'))
@@ -47,12 +46,11 @@ class ServiceInterface:
         if files_comments is None:
             return self.logger.warning(self.get_string('comments_files_not_found'))
 
-        delete_category(
+        delete_category_sync(
             vk_api_client=self.vk_api_client,
             files_iterator=files_comments,
             file_parser=parse_comments_from_file,
-            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_comments')),
-            log_queue=self.log_queue
+            description=self.get_string('deleting_comments'),
         )
 
         self.logger.info(self.get_string('comments_deleted'))
@@ -63,12 +61,11 @@ class ServiceInterface:
         if wall_posts_files is None:
             return self.logger.warning(self.get_string('wall_files_not_found'))
 
-        delete_category(
+        delete_category_sync(
             vk_api_client=self.vk_api_client,
             files_iterator=wall_posts_files,
             file_parser=parse_likes_from_file,
-            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_wall')),
-            log_queue = self.log_queue
+            description=self.get_string('deleting_wall'),
         )
 
         self.logger.info(self.get_string('wall_deleted'))
@@ -78,12 +75,11 @@ class ServiceInterface:
         if photos_in_albums_files is None:
             return self.logger.warning(self.get_string('photos_in_albums_files_not_found'))
 
-        delete_category(
+        delete_category_sync(
             vk_api_client=self.vk_api_client,
             files_iterator=photos_in_albums_files,
             file_parser=parse_likes_from_file,
-            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_photos_in_albums')),
-            log_queue = self.log_queue
+            description=self.get_string('deleting_photos_in_albums')
         )
 
         self.logger.info(self.get_string('photos_in_albums_deleted'))
@@ -93,12 +89,11 @@ class ServiceInterface:
         if photos_in_messages_files is None:
             return self.logger.warning(self.get_string('photos_in_messages_files_not_found'))
 
-        delete_category(
+        delete_category_sync(
             vk_api_client=self.vk_api_client,
             files_iterator=photos_in_messages_files,
             file_parser=functools.partial(parse_photos_in_messages_from_file, vk_api_client=self.vk_api_client),
-            progress_monitor=self.progress_monitor_factory(self.get_string('deleting_photos_in_messages')),
-            log_queue = self.log_queue
+            description=self.get_string('deleting_photos_in_messages')
         )
 
         self.logger.info(self.get_string('photos_in_messages_deleted'))

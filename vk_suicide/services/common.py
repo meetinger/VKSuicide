@@ -8,16 +8,18 @@ from typing import Generator, Callable, Any, TypedDict
 
 from tqdm import tqdm
 
-from vk_suicide.utils import remove_duplicates
 from vk_suicide.vk_api_client import VKApiClient
 from vk_suicide.loggers import get_logger, worker_init
 
+
+BAR_FORMAT = ("{desc}: |{bar}| {percentage:3.0f}% "
+             "({n_fmt}/{total_fmt}) "
+             "[{elapsed}<{remaining}, {rate_fmt}]")
 
 class ApiTaskData(TypedDict):
     link: str
     method: str
     params: dict
-
 
 def process_file(
         vk_api_client: VKApiClient,
@@ -118,6 +120,36 @@ def delete_category(
 
     done_event.set()
     monitor_thread.join()
+
+def delete_category_sync(
+        vk_api_client: VKApiClient,
+        files_iterator: Generator,
+        file_parser: Callable[[str], Generator],
+        description: str,
+):
+
+    def _task_generator():
+        for file in files_iterator:
+            yield from file_parser(file)
+
+    logger = get_logger('process-file-sync')
+
+    def _execute_task(task: ApiTaskData) -> None:
+        logger.debug(f'Processing: {task["link"]}')
+        try:
+            logger.debug(f'Params: {task["params"]}')
+            result = vk_api_client.execute_method(task['method'], task['params'], max_retries=5)
+            logger.debug(f'Response: {result}')
+            if result.get('error'):
+                logger.error(f'Error processing {task["link"]}: {result["error"]}')
+        except Exception as e:
+            logger.error(f'Exception while processing {task["link"]}: {e}\nData: {task}')
+
+    for cur_task in tqdm(_task_generator(),
+                     dynamic_ncols=True,
+                     desc=description,
+                     bar_format=BAR_FORMAT,):
+        _execute_task(cur_task)
 
 
 def progress_monitor_cli_factory(description: str) -> Callable[[list, Any, Any], None]:

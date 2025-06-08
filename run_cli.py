@@ -1,4 +1,6 @@
 import os
+import threading
+import time
 import zipfile
 import multiprocessing as mp
 from enum import IntEnum
@@ -71,6 +73,16 @@ def main():
         token = token.split('access_token=')[-1].split('&expires_in=')[0]
 
     vk_api_client = VKApiClient(token)
+
+    vk_api_client.set_shared_state(
+        threading.Lock(),
+        threading.Lock(),
+        [],
+        {},
+        mp.Value('d', time.time())
+    )
+
+    vk_api_client.logger = get_logger('vk-api-client')
 
     service_interface = ServiceInterface(vk_api_client, archive_path,
                                          progress_monitor_factory=progress_monitor_cli_factory,

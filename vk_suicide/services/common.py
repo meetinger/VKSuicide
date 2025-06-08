@@ -145,7 +145,7 @@ def delete_category_sync(
         except Exception as e:
             logger.error(f'Exception while processing {task["link"]}: {e}\nData: {task}')
 
-    for cur_task in tqdm(_task_generator(),
+    for cur_task in tqdm(list(_task_generator()),
                      dynamic_ncols=True,
                      desc=description,
                      bar_format=BAR_FORMAT,):

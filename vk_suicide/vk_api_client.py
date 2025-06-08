@@ -64,7 +64,7 @@ class VKApiClient:
         self._wait_if_needed()
         self._rate_limit_check()
         data = {'access_token': self._token, 'v': '5.131', **params, **self.captcha_params}
-        self.logger.info(f"data: {data}")
+        # self.logger.info(f"data: {data}")
         res = requests.post(url=f"https://api.vk.com/method/{method}", data=data).json()
         return res
 

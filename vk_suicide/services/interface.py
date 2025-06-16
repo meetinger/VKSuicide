@@ -10,7 +10,7 @@ from vk_suicide.services.common import delete_category_sync
 from vk_suicide.services.likes import likes_files_iterator, parse_likes_from_file
 from vk_suicide.services.photos_in_albums import photos_in_albums_files_iterator
 from vk_suicide.services.photos_in_messages import parse_photos_in_messages_from_file
-from vk_suicide.services.wall import wall_files_iterator
+from vk_suicide.services.wall import wall_files_iterator, parse_wall_posts_from_file
 from vk_suicide.vk_api_client import VKApiClient
 
 
@@ -64,7 +64,7 @@ class ServiceInterface:
         delete_category_sync(
             vk_api_client=self.vk_api_client,
             files_iterator=wall_posts_files,
-            file_parser=parse_likes_from_file,
+            file_parser=parse_wall_posts_from_file,
             description=self.get_string('deleting_wall'),
         )
 

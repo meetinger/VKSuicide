@@ -21,5 +21,6 @@ def parse_wall_posts_from_file(file_path: str) -> Generator[ApiTaskData, None, N
 
 def wall_files_iterator(extracted_archive_path: str) -> Generator[Path, None, None]:
     category_dir = Path(extracted_archive_path, 'wall')
-    for file_name in category_dir.iterdir():
-        yield (category_dir / file_name).absolute()
+    for path in category_dir.rglob('*'):
+        if path.is_file():
+            yield path.absolute()

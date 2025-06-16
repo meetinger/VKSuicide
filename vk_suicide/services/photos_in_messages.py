@@ -25,14 +25,22 @@ def parse_photos_in_messages_from_file(file_path: str, vk_api_client: VKApiClien
                 return True
         return False
 
-    def _get_messages_with_photos():
+    def _get_messages_with_photos(_msgs_ids: list[int]):
         _messages = vk_api_client.execute_method('messages.getById', {'message_ids': ', '.join(msgs_id)})
         return list(filter(_filter_func, _messages['response']['items']))
 
     msg_batches = [msgs_id[i:i + 100] for i in range(0, len(msgs_id), 100)]
 
-    with ThreadPoolExecutor as executor:
-        messages = executor.map(_get_messages_with_photos, msg_batches)
+    messages = []
+
+    for msg_batch in msg_batches:
+        messages.extend(_get_messages_with_photos(msg_batch))
+
+
+    print('messages:', messages)
+
+    # with ThreadPoolExecutor() as executor:
+    #     messages = executor.map(_get_messages_with_photos, msg_batches)
 
     for msg in messages:
         for attachment in msg['attachments']:

@@ -15,7 +15,7 @@ def parse_comments_from_file(file_path: str) -> Generator:
     for match_obj in re.finditer(link_regex, text):
         match = match_obj.group(0)
         owner_id = re.search(r'[-0-9]+', match).group()
-        reply_id = re.search(r'reply=[-0-9]+', match).group()
+        reply_id = re.search(r'reply=[-0-9]+', match).group().replace('reply=', '')
         thread_id = re.search(r'thread=[-0-9]+', match)
         comment_id = reply_id
 
@@ -24,7 +24,7 @@ def parse_comments_from_file(file_path: str) -> Generator:
                                                                    'comment_id': int(comment_id)}}
 
 def comments_files_iterator(extracted_archive_path: str) -> Generator[Path, None, None]:
-    category_dir = Path(extracted_archive_path, 'likes')
+    category_dir = Path(extracted_archive_path, 'comments')
     if not category_dir.exists():
         return
     for file_name in category_dir.iterdir():
